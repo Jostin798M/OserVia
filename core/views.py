@@ -284,5 +284,35 @@ def archivo_view(request, tipo, pk):
     if not puede_ver_expediente(request.user, expediente_de(obj)):
         raise Http404
     f = getattr(obj, campo)
-    nombre = getattr(obj, 'nombre_original', None) or f.name.rsplit('/', 1)[-1]
-    return servir(request, f, nombre=nombre, descargar=request.GET.get('descargar') == '1')
+    return servir(request, f, nombre=_nombre_descarga(tipo, obj, expediente_de(obj), f),
+                  descargar=request.GET.get('descargar') == '1')
+
+
+def _limpio(texto):
+    """Texto apto para nombre de archivo: sin tildes ni símbolos, palabras unidas con guiones."""
+    import re
+    import unicodedata
+    texto = unicodedata.normalize('NFKD', str(texto)).encode('ascii', 'ignore').decode()
+    return re.sub(r'[^A-Za-z0-9]+', '-', texto).strip('-')
+
+
+def _codigo_lugar(lugar):
+    """«Guayaquil (GYE)» -> «GYE»; si no tiene código, el nombre."""
+    import re
+    m = re.search(r'\(([A-Za-z]{3})\)', lugar)
+    return m.group(1).upper() if m else lugar
+
+
+def _nombre_descarga(tipo, obj, exp, f):
+    """Titular + número de expediente + de qué se trata. Ej.: Jostin-Mora_EXP-00006_Boleto_GYE-MIA.pdf"""
+    import os
+    ext = os.path.splitext(getattr(obj, 'nombre_original', '') or f.name)[1].lower() or '.pdf'
+    detalle = {
+        'boleto': lambda: f'Boleto_{_codigo_lugar(obj.origen)}-{_codigo_lugar(obj.destino)}_{obj.numero_vuelo}',
+        'viaje': lambda: f'{obj.titulo}_{exp.titulo}',
+        'cita': lambda: f'Cita-consular_{obj.fecha:%d-%m-%Y}',
+        'comprobante': lambda: f'Comprobante_{obj.numero}',
+        'documento': lambda: f'{obj.documento.nombre}',
+    }[tipo]()
+    partes = [_limpio(exp.nombre or exp.usuario.get_full_name() or 'Cliente'), exp.codigo] + [_limpio(x) for x in detalle.split('_')]
+    return '_'.join(p for p in partes if p) + ext
