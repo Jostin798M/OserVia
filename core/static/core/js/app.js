@@ -181,7 +181,6 @@
     function syncRestante() {
       var r = restantes[selServicio.value];
       btnRestante.disabled = !r;
-      btnRestante.textContent = r ? 'Pagar lo restante ($' + fmtR.format(parseFloat(r)) + ')' : 'Pagar lo restante';
       if (r) monto.max = r; else monto.removeAttribute('max');
     }
     btnRestante.addEventListener('click', function () {
