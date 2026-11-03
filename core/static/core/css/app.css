@@ -1341,3 +1341,9 @@ body:not(.public) main#contenido { padding-bottom: 48px; }
 .carrusel-btn { position: absolute; top: 50%; z-index: 2; width: 42px; height: 42px; border-radius: 999px; display: grid; place-items: center; transform: translateY(-50%); border: 1px solid var(--border); background: var(--surface); color: var(--text); box-shadow: var(--shadow); cursor: pointer; }
 .carrusel-btn:disabled { opacity: 0; pointer-events: none; }
 .carrusel-btn--prev { left: -14px; } .carrusel-btn--next { right: -14px; }
+
+/* Contadores del menú del panel: rojo sólido en modo claro, versión suave en modo oscuro */
+:root[data-theme="dark"] .count { background: var(--danger-soft); color: var(--danger); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 45%, transparent); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .count { background: var(--danger-soft); color: var(--danger); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 45%, transparent); }
+}
