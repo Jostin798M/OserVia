@@ -1350,3 +1350,4 @@ body:not(.public) main#contenido { padding-bottom: 48px; }
 
 .btn-restante { justify-self: start; margin-top: 2px; --btn-bg: var(--primary-soft); --btn-fg: var(--primary-text); --btn-bd: transparent; --btn-hover: color-mix(in srgb, var(--primary-soft) 70%, var(--primary-text) 12%); }
 .btn-restante:disabled { opacity: .5; cursor: not-allowed; }
+.btn-restante { width: 100%; white-space: normal; line-height: 1.3; text-align: center; }
