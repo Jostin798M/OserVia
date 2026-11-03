@@ -352,7 +352,15 @@ class AsignarForm(EstiloMixin, forms.Form):
 
 # ==================================================================== Expedientes (RS-06, RS-08)
 
-class ExpedienteForm(EstiloMixin, forms.ModelForm):
+class PrecioValidoMixin:
+    def clean_precio_total(self):
+        precio = self.cleaned_data.get('precio_total')
+        if self.instance.pk and precio is not None and precio < self.instance.total_abonado:
+            raise forms.ValidationError(f'No puede ser menor que lo ya abonado (${self.instance.total_abonado:,.2f}).')
+        return precio
+
+
+class ExpedienteForm(PrecioValidoMixin, EstiloMixin, forms.ModelForm):
     usuario = UsuarioChoiceField(label='Cuenta del usuario', queryset=User.objects.none(),
                                  empty_label='Selecciona la cuenta del usuario')
     asesor = AsesorChoiceField(label='Asesor responsable', queryset=User.objects.none(), required=False,
@@ -437,7 +445,7 @@ class ResultadoForm(EstiloMixin, forms.ModelForm):
         return d
 
 
-class SeguimientoForm(EstiloMixin, forms.ModelForm):
+class SeguimientoForm(PrecioValidoMixin, EstiloMixin, forms.ModelForm):
     class Meta:
         model = Expediente
         fields = ['estado', 'precio_total', 'comentario_usuario', 'notas_internas']
@@ -572,6 +580,12 @@ class ComprobanteForm(EstiloMixin, forms.ModelForm):
         exp, numero = d.get('expediente'), (d.get('numero') or '').strip()
         if exp and numero and exp.comprobantes.filter(numero__iexact=numero).exclude(estado='rechazado').exists():
             self.add_error('numero', 'Este comprobante ya fue enviado para este servicio.')
+        if exp and d.get('monto') is not None:
+            if exp.precio_total is None:
+                self.add_error('expediente', 'Este servicio aún no tiene un precio registrado. Consulta a tu asesor antes de pagar.')
+            elif d['monto'] > exp.por_pagar:
+                self.add_error('monto', f'El monto supera lo que falta pagar (${exp.por_pagar:,.2f}, '
+                                        'descontando los comprobantes que están en revisión).')
         return d
 
     def validate_unique(self):

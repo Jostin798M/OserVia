@@ -64,6 +64,9 @@ def confirmar_comprobante(comprobante_id, revisor):
             c = Comprobante.objects.select_for_update().get(pk=comprobante_id)
             if c.estado != Comprobante.Estado.PENDIENTE:
                 return False
+            exp = c.expediente
+            if exp.precio_total is not None and c.monto > exp.saldo:
+                return 'excede'
             c.estado, c.revisado_por, c.revisado_en = Comprobante.Estado.CONFIRMADO, revisor, timezone.now()
             c.save(update_fields=['estado', 'revisado_por', 'revisado_en'])
             Abono.objects.create(comprobante=c, expediente=c.expediente, monto=c.monto, fecha=c.fecha_pago,

@@ -577,6 +577,17 @@ class Expediente(AsignableMixin):
             return None
         return self.precio_total - self.total_abonado
 
+    @property
+    def en_revision(self):
+        return self.comprobantes.filter(estado='pendiente').aggregate(t=Sum('monto'))['t'] or Decimal('0')
+
+    @property
+    def por_pagar(self):
+        """Lo que aún se puede enviar: saldo menos comprobantes que esperan revisión."""
+        if self.precio_total is None:
+            return None
+        return max(self.saldo - self.en_revision, Decimal('0'))
+
     def get_absolute_url(self):
         return reverse('expediente', args=[self.pk])
 

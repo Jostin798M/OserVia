@@ -336,7 +336,12 @@ def panel_expediente(request, pk):
         c = get_object_or_404(Comprobante, pk=request.POST.get('id'), expediente=exp)
         if accion == 'confirmar':
             ok = servicios.confirmar_comprobante(c.pk, u)
-            messages.success(request, 'Pago confirmado y registrado como abono.') if ok else \
+            if ok == 'excede':
+                messages.error(request, f'No se confirmó: el monto (${c.monto:,.2f}) supera el saldo pendiente '
+                                        f'(${exp.saldo:,.2f}). Rechaza el comprobante indicando el motivo.')
+            elif ok:
+                messages.success(request, 'Pago confirmado y registrado como abono.')
+            else:
                 messages.error(request, 'Este comprobante ya había sido revisado.')
             return redirect(exp.get_panel_url() + '#pagos')
         form = RechazoComprobanteForm(request.POST)
