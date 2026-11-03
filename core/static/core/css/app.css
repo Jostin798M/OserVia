@@ -1347,3 +1347,6 @@ body:not(.public) main#contenido { padding-bottom: 48px; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .count { background: var(--danger-soft); color: var(--danger); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 45%, transparent); }
 }
+
+.btn-restante { justify-self: start; margin-top: 2px; --btn-bg: var(--primary-soft); --btn-fg: var(--primary-text); --btn-bd: transparent; --btn-hover: color-mix(in srgb, var(--primary-soft) 70%, var(--primary-text) 12%); }
+.btn-restante:disabled { opacity: .5; cursor: not-allowed; }

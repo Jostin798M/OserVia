@@ -1,6 +1,7 @@
 {% extends 'core/base.html' %}
 {% load ui %}
-{% block title %}Pagos{% endblock %}
+{% block title %}Pagos{{ restantes|json_script:"restantes-data" }}
+{% endblock %}
 {% block content %}
 {% include 'core/partials/hero.html' with hero_icon='dollar' hero_title='Pagos y saldos' hero_sub='Consulta cuánto has pagado y envía tus comprobantes para revisión.' %}
 <div class="container lift">
@@ -34,7 +35,10 @@
           <div class="stack">
             {% include 'core/partials/field.html' with field=form.expediente %}
             <div class="grid grid-2">
-              {% include 'core/partials/field.html' with field=form.monto icon='dollar' %}
+              <div class="field">
+                {% include 'core/partials/field.html' with field=form.monto icon='dollar' %}
+                <button type="button" class="btn btn-sm btn-restante" data-pagar-restante disabled>Pagar lo restante</button>
+              </div>
               {% include 'core/partials/field.html' with field=form.fecha_pago %}
             </div>
             {% include 'core/partials/field.html' with field=form.numero %}

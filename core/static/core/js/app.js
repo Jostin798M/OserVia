@@ -170,6 +170,28 @@
     sync();
   });
 
+  /* ------------------------------------------------------------ Pagar lo restante */
+  var restantesData = document.getElementById('restantes-data');
+  var btnRestante = document.querySelector('[data-pagar-restante]');
+  if (restantesData && btnRestante) {
+    var restantes = JSON.parse(restantesData.textContent);
+    var selServicio = document.getElementById('id_expediente');
+    var monto = document.getElementById('id_monto');
+    var fmtR = new Intl.NumberFormat('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    function syncRestante() {
+      var r = restantes[selServicio.value];
+      btnRestante.disabled = !r;
+      btnRestante.textContent = r ? 'Pagar lo restante ($' + fmtR.format(parseFloat(r)) + ')' : 'Pagar lo restante';
+      if (r) monto.max = r; else monto.removeAttribute('max');
+    }
+    btnRestante.addEventListener('click', function () {
+      var r = restantes[selServicio.value];
+      if (r) { monto.value = r; monto.dispatchEvent(new Event('input', { bubbles: true })); monto.focus(); }
+    });
+    selServicio.addEventListener('change', syncRestante);
+    syncRestante();
+  }
+
   /* ------------------------------------------------------------ Carrusel */
   document.querySelectorAll('[data-carrusel]').forEach(function (c) {
     var pista = c.querySelector('[data-carrusel-pista]');

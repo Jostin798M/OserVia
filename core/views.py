@@ -261,7 +261,8 @@ def pagos_view(request):
             return redirect('pagos')
         messages.error(request, 'No se guardó el comprobante. Revisa los campos marcados.')
     expedientes = Expediente.objects.filter(usuario=user).prefetch_related('abonos', 'comprobantes')
-    return render(request, 'core/pagos.html', {'form': form, 'expedientes': expedientes})
+    restantes = {str(e.pk): f'{e.por_pagar:.2f}' for e in expedientes if e.por_pagar}
+    return render(request, 'core/pagos.html', {'form': form, 'expedientes': expedientes, 'restantes': restantes})
 
 
 # ==================================================================== Archivos privados (RNF-06)
