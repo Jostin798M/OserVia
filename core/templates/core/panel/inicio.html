@@ -1,0 +1,50 @@
+{% extends 'core/panel/base.html' %}
+{% load ui %}
+{% block title %}Resumen{% endblock %}
+{% block content %}
+{% now "l, j \d\e F" as hoy %}
+{% include 'core/partials/hero.html' with hero_icon='shield' hero_title='Hola, '|add:user.first_name hero_sub=hoy|capfirst variante='panel' %}
+<div class="container lift">
+  <div class="kpis">
+    <a class="kpi kpi--info" href="{% url 'panel_consultas' %}"><span class="kpi-icon">{% icon 'message' 20 %}</span><strong>{{ stats.consultas }}</strong><span>{% if es_admin %}Consultas sin asignar{% else %}Consultas asignadas{% endif %}</span></a>
+    <a class="kpi kpi--warn" href="{% url 'panel_solicitudes' %}"><span class="kpi-icon">{% icon 'send' 20 %}</span><strong>{{ stats.solicitudes }}</strong><span>Cotizaciones por preparar</span></a>
+    <a class="kpi" href="{% url 'panel_expedientes' %}"><span class="kpi-icon">{% icon 'clipboard' 20 %}</span><strong>{{ stats.expedientes }}</strong><span>Expedientes en curso</span></a>
+    <a class="kpi kpi--warn" href="{% url 'panel_documentos' %}?vista=revisar"><span class="kpi-icon">{% icon 'file' 20 %}</span><strong>{{ stats.por_revisar }}</strong><span>Documentos por revisar</span></a>
+    <a class="kpi kpi--danger" href="{% url 'panel_documentos' %}"><span class="kpi-icon">{% icon 'hourglass' 20 %}</span><strong>{{ stats.pendientes_usuario }}</strong><span>Pendientes del usuario</span></a>
+    <a class="kpi kpi--info" href="{% url 'panel_pagos' %}"><span class="kpi-icon">{% icon 'dollar' 20 %}</span><strong>{{ stats.comprobantes }}</strong><span>Comprobantes por revisar</span></a>
+  </div>
+  {% if es_admin and stats.sin_asignar %}<div class="alert alert--warn section">{% icon 'alert' 20 %}<div>Hay <strong>{{ stats.sin_asignar }}</strong> solicitudes o expedientes sin asesor asignado. <a href="{% url 'panel_solicitudes' %}?estado=sin_asignar">Revisar cotizaciones</a> · <a href="{% url 'panel_expedientes' %}?estado=sin_asignar">Revisar expedientes</a></div></div>{% endif %}
+
+  <div class="detail-grid section">
+    <div class="stack">
+      <section class="card"><div class="card-body">
+        <div class="section-head"><div><h2 class="h-card" style="margin:0">Documentos por revisar</h2><p>Entregados por los usuarios.</p></div><a class="btn btn-sm" href="{% url 'panel_documentos' %}?vista=revisar">Ver todos</a></div>
+        {% for d in docs_revisar %}<a class="row-link" href="{{ d.expediente.get_panel_url }}#documentos"><span><strong>{{ d.nombre }}</strong><span class="muted small" style="display:block">{{ d.expediente.codigo }} · {{ d.expediente.nombre }}</span></span>{% include 'core/partials/badge.html' with tono=d.tono texto=d.get_estado_display %}</a>
+        {% empty %}<p class="muted small">No hay documentos por revisar.</p>{% endfor %}
+      </div></section>
+      <section class="card"><div class="card-body">
+        <div class="section-head"><div><h2 class="h-card" style="margin:0">Comprobantes de pago</h2><p>Pendientes de revisión.</p></div><a class="btn btn-sm" href="{% url 'panel_pagos' %}">Ver todos</a></div>
+        {% for c in comprobantes %}<a class="row-link" href="{{ c.expediente.get_panel_url }}#pagos"><span><strong>${{ c.monto|floatformat:"2g" }} · {{ c.get_medio_display }}</strong><span class="muted small" style="display:block">{{ c.expediente.codigo }} · N.º {{ c.numero }} · {{ c.fecha_pago|date:"j M Y" }}</span></span>{% include 'core/partials/badge.html' with tono='warn' texto='Pendiente' %}</a>
+        {% empty %}<p class="muted small">No hay comprobantes pendientes.</p>{% endfor %}
+      </div></section>
+    </div>
+    <aside class="stack">
+      <div class="card"><div class="card-body">
+        <div class="section-head" style="margin-bottom:10px"><h3>Citas de hoy</h3><a class="small" href="{% url 'panel_agenda' %}">Agenda</a></div>
+        {% for c in citas %}{% include 'core/partials/cita_mini.html' %}{% empty %}<p class="muted small">No hay citas para hoy.</p>{% endfor %}
+        <a class="btn btn-block btn-sm" style="margin-top:12px" href="{% url 'panel_cita_nueva' %}">{% icon 'plus' 16 %}Programar cita</a>
+      </div></div>
+      <div class="card"><div class="card-body">
+        <h3 style="margin-bottom:10px">Revisar buzón</h3>
+        <p class="muted small" style="margin-bottom:10px">Correos al consulado sin respuesta con revisión programada.</p>
+        {% for m in correos %}<a class="row-link" href="{{ m.expediente.get_panel_url }}#correo"><span><strong>{{ m.asunto }}</strong><span class="muted small" style="display:block">{{ m.expediente.codigo }} · revisar el {{ m.proxima_revision|date:"j M" }}</span></span></a>
+        {% empty %}<p class="muted small">Nada pendiente.</p>{% endfor %}
+      </div></div>
+      <div class="card"><div class="card-body quick">
+        <a href="{% url 'panel_expediente_nuevo' %}">{% icon 'plus' 18 %}Crear expediente</a>
+        {% if es_admin %}<a href="{% url 'panel_personal' %}">{% icon 'shield' 18 %}Crear cuenta de asesor</a><a href="{% url 'panel_contenido' %}">{% icon 'globe' 18 %}Editar contenido público</a>{% endif %}
+      </div></div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

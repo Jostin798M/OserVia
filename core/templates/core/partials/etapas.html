@@ -1,0 +1,6 @@
+{% load ui %}<ol class="timeline">
+  {% for p in e.etapas_progreso %}<li class="{{ p.estado }}">
+    <span class="dot">{% if p.estado == 'done' %}{% icon 'check' 14 %}{% elif p.estado == 'current' %}{% icon 'clock' 14 %}{% endif %}</span>
+    <div><div class="t-label">{{ p.label }}</div>{% if p.estado == 'current' %}<div class="t-sub">Etapa actual</div>{% endif %}{% if forloop.last and e.fecha_presentacion %}<div class="t-sub">Presentado el {{ e.fecha_presentacion|date:"j M Y" }}</div>{% endif %}</div>
+  </li>{% endfor %}
+</ol>

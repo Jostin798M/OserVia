@@ -1,0 +1,35 @@
+{% extends 'core/panel/base.html' %}
+{% load ui %}
+{% block title %}Mi perfil{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='user' hero_title=user.get_full_name|default:user.email hero_sub=user.perfil.get_rol_display|add:' · '|add:user.email variante='panel' %}
+<div class="container lift">
+  <div class="profile-grid">
+    <form method="post" class="card" novalidate data-submit-once>{% csrf_token %}<input type="hidden" name="accion" value="datos">
+      <div class="card-body">
+        <h2 class="h-card">Datos personales</h2>
+        <div class="grid grid-2">
+          {% include 'core/partials/field.html' with field=datos_form.first_name %}
+          {% include 'core/partials/field.html' with field=datos_form.last_name %}
+          {% include 'core/partials/field.html' with field=datos_form.email icon='mail' cls='span-all' %}
+          {% include 'core/partials/field.html' with field=datos_form.telefono icon='phone' %}
+          {% include 'core/partials/field.html' with field=datos_form.cedula icon='id' %}
+        </div>
+        <div class="form-actions"><button type="submit" class="btn btn-primary">Guardar cambios</button></div>
+      </div>
+    </form>
+    <form method="post" class="card" novalidate data-submit-once>{% csrf_token %}<input type="hidden" name="accion" value="password">
+      <div class="card-body">
+        <h2 class="h-card">Cambiar contraseña</h2>
+        {% if accion == 'password' %}{% include 'core/partials/form_errors.html' with form=pass_form %}{% endif %}
+        <div class="stack">
+          {% include 'core/partials/field.html' with field=pass_form.old_password icon='lock' %}
+          {% include 'core/partials/field.html' with field=pass_form.new_password1 icon='lock' %}
+          {% include 'core/partials/field.html' with field=pass_form.new_password2 icon='lock' %}
+        </div>
+        <div class="form-actions"><button type="submit" class="btn btn-block">Cambiar contraseña</button></div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

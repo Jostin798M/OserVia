@@ -1,0 +1,36 @@
+{% extends 'core/panel/base.html' %}
+{% load ui %}
+{% block title %}Expedientes{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='clipboard' hero_title='Expedientes' hero_sub=es_admin|yesno:'Todos los servicios contratados.,Expedientes que tienes asignados.' variante='panel' %}
+<div class="container lift">
+  <div class="card"><div class="card-body">
+    <div class="filters">
+      <form method="get" class="search" role="search" style="flex:1">
+        <input type="hidden" name="tipo" value="{{ tipo }}"><input type="hidden" name="estado" value="{{ estado }}">
+        <div class="control has-icon" style="flex:1">{% icon 'search' 18 'control-icon' %}<input class="input" type="search" name="q" value="{{ q }}" placeholder="Buscar expediente…" aria-label="Buscar por código, titular, documento o destino"></div>
+        <button class="btn btn-primary" type="submit">Buscar</button>
+      </form>
+      <a class="btn btn-accent" href="{% url 'panel_expediente_nuevo' %}">{% icon 'plus' 18 %}Nuevo expediente</a>
+    </div>
+    <div class="filters" style="margin-top:12px">
+      <nav class="chips" aria-label="Tipo">
+        <a class="chip" href="?tipo=todos&estado={{ estado }}&q={{ q|urlencode }}" {% if tipo == 'todos' %}aria-current="true"{% endif %}>Todos</a>
+        <a class="chip" href="?tipo=visa&estado={{ estado }}&q={{ q|urlencode }}" {% if tipo == 'visa' %}aria-current="true"{% endif %}>{% icon 'passport' 16 %}Visas</a>
+        <a class="chip" href="?tipo=vuelo&estado={{ estado }}&q={{ q|urlencode }}" {% if tipo == 'vuelo' %}aria-current="true"{% endif %}>{% icon 'plane' 16 %}Vuelos</a>
+        <a class="chip" href="?tipo=paquete&estado={{ estado }}&q={{ q|urlencode }}" {% if tipo == 'paquete' %}aria-current="true"{% endif %}>{% icon 'suitcase' 16 %}Paquetes</a>
+      </nav>
+      <nav class="chips" aria-label="Estado">
+        <a class="chip" href="?tipo={{ tipo }}&estado=en_curso&q={{ q|urlencode }}" {% if estado == 'en_curso' %}aria-current="true"{% endif %}>En curso</a>
+        <a class="chip" href="?tipo={{ tipo }}&estado=finalizado&q={{ q|urlencode }}" {% if estado == 'finalizado' %}aria-current="true"{% endif %}>Finalizados</a>
+        {% if es_admin %}<a class="chip" href="?tipo={{ tipo }}&estado=sin_asignar&q={{ q|urlencode }}" {% if estado == 'sin_asignar' %}aria-current="true"{% endif %}>Sin asignar</a>{% endif %}
+        <a class="chip" href="?tipo={{ tipo }}&estado=todos&q={{ q|urlencode }}" {% if estado == 'todos' %}aria-current="true"{% endif %}>Todos</a>
+      </nav>
+    </div>
+    <div style="margin-top:14px">
+    {% if pagina.object_list %}<div class="req-list">{% for e in pagina %}{% include 'core/partials/exp_item.html' with panel=True %}{% endfor %}</div>{% include 'core/partials/paginacion.html' %}
+    {% else %}<div class="empty">{% include 'core/partials/empty_art.html' %}<h3>Sin expedientes</h3><p>No hay expedientes en este filtro.</p></div>{% endif %}
+    </div>
+  </div></div>
+</div>
+{% endblock %}

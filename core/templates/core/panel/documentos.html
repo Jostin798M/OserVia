@@ -1,0 +1,27 @@
+{% extends 'core/panel/base.html' %}
+{% load ui %}
+{% block title %}Documentos{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='file' hero_title='Documentos' hero_sub='Seguimiento de la documentación de tus expedientes en curso.' variante='panel' %}
+<div class="container lift">
+  <div class="card"><div class="card-body">
+    <nav class="chips" style="margin-bottom:16px" aria-label="Vista">
+      <a class="chip" href="?vista=usuario" {% if vista == 'usuario' %}aria-current="true"{% endif %}>{% icon 'hourglass' 16 %}Pendientes de entrega o corrección</a>
+      <a class="chip" href="?vista=revisar" {% if vista == 'revisar' %}aria-current="true"{% endif %}>{% icon 'eye' 16 %}Por revisar</a>
+    </nav>
+    {% if pagina.object_list %}
+    <div class="table-wrap"><table class="table table--stack">
+      <thead><tr><th>Usuario</th><th>Expediente</th><th>Documento solicitado</th><th>Estado</th>{% if vista == 'usuario' %}<th>Qué debe corregirse</th>{% endif %}</tr></thead>
+      <tbody>{% for d in pagina %}<tr>
+        <td data-label="Usuario">{{ d.expediente.nombre }}<span class="muted small" style="display:block">{{ d.expediente.usuario.email }}</span></td>
+        <td data-label="Expediente"><a href="{{ d.expediente.get_panel_url }}#documentos">{{ d.expediente.codigo }}</a></td>
+        <td data-label="Documento solicitado"><strong>{{ d.nombre }}</strong></td>
+        <td data-label="Estado">{% include 'core/partials/badge.html' with tono=d.tono texto=d.get_estado_display %}</td>
+        {% if vista == 'usuario' %}<td data-label="Qué debe corregirse">{% if d.estado == 'correccion' %}{{ d.ultima_correccion.comentario }}{% else %}<span class="muted">—</span>{% endif %}</td>{% endif %}
+      </tr>{% endfor %}</tbody>
+    </table></div>
+    {% include 'core/partials/paginacion.html' %}
+    {% else %}<div class="empty">{% include 'core/partials/empty_art.html' %}<h3>Todo al día</h3><p>No hay documentos en esta vista.</p></div>{% endif %}
+  </div></div>
+</div>
+{% endblock %}

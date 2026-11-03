@@ -1,0 +1,62 @@
+{% extends 'core/base.html' %}
+{% load ui %}
+{% block title %}Inicio{% endblock %}
+{% block content %}
+<section class="hero">
+  {% include 'core/partials/hero_art.html' %}
+  <div class="container fade-up">
+    <p class="eyebrow">{% icon 'globe' 14 %}{% now "l, j \d\e F" %}</p>
+    <h1>Hola, {{ user.first_name|default:"viajero" }}.</h1>
+    <p style="margin-top:8px;max-width:56ch">Aquí ves el estado de tus trámites, tus cotizaciones, tus citas y tus pagos.</p>
+  </div>
+</section>
+
+<div class="container lift">
+  <div class="kpis kpis--4">
+    <a class="kpi kpi--info" href="{% url 'expedientes' %}"><span class="kpi-icon">{% icon 'clipboard' 20 %}</span><strong>{{ stats.expedientes }}</strong><span>Servicios en curso</span></a>
+    <a class="kpi {% if stats.docs %}kpi--danger{% endif %}" href="{% url 'expedientes' %}"><span class="kpi-icon">{% icon 'file' 20 %}</span><strong>{{ stats.docs }}</strong><span>Documentos por entregar</span></a>
+    <a class="kpi {% if stats.cotizaciones %}kpi--warn{% endif %}" href="{% url 'mis_solicitudes' %}"><span class="kpi-icon">{% icon 'send' 20 %}</span><strong>{{ stats.cotizaciones }}</strong><span>Cotizaciones por responder</span></a>
+    <a class="kpi" href="{% url 'pagos' %}"><span class="kpi-icon">{% icon 'dollar' 20 %}</span><strong>${{ stats.saldo|floatformat:"2g" }}</strong><span>Saldo pendiente</span></a>
+  </div>
+
+  {% for a in avisos %}
+  <div class="alert alert--warn section" role="status">{% icon 'alert' 20 %}<div><strong>{{ a.get_tipo_display }}: {{ a.aerolinea }} {{ a.numero_vuelo }} del {{ a.fecha_vuelo|date:"j M Y" }}.</strong> {{ a.cambio_informado }}{% if a.nueva_fecha_hora %} Nueva fecha y hora: <strong>{{ a.nueva_fecha_hora|date:"j M Y, H:i" }}</strong>.{% endif %} <a href="{{ a.expediente.get_absolute_url }}">Ver expediente</a></div></div>
+  {% endfor %}
+
+  {% if cotizaciones %}
+  <section class="section">
+    <div class="section-head"><div><h2>Cotizaciones por responder</h2><p>Revísalas y acéptalas o recházalas antes de que venzan.</p></div></div>
+    <div class="req-list">
+      {% for c in cotizaciones %}<a class="req" href="{{ c.solicitud.get_absolute_url }}"><span class="req-icon">{% icon 'send' 22 %}</span>
+        <span class="req-main"><span class="req-title">{{ c.solicitud.titulo }} · ${{ c.precio_total|floatformat:"2g" }}</span><span class="req-meta"><span class="code">{{ c.codigo }}</span><span>Válida hasta {{ c.vigencia|date:"j M Y" }}</span></span></span>
+        <span class="req-side">{% include 'core/partials/badge.html' with tono='warn' texto='Pendiente de respuesta' %}{% icon 'chevron-right' 18 'chev' %}</span></a>{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <div class="detail-grid section">
+    <section>
+      <div class="section-head"><div><h2>Mis servicios en curso</h2><p>Expedientes abiertos por tu asesor.</p></div>
+        <a class="btn btn-sm" href="{% url 'expedientes' %}">Ver todos{% icon 'arrow-right' 16 %}</a></div>
+      {% if expedientes %}<div class="req-list">{% for e in expedientes %}{% include 'core/partials/exp_item.html' %}{% endfor %}</div>
+      {% else %}<div class="card"><div class="empty">{% include 'core/partials/empty_art.html' %}<h3>Aún no tienes servicios contratados</h3>
+        <p>Cuando contrates un servicio, tu asesor abrirá un expediente y lo verás aquí.</p>
+        <div class="actions"><a class="btn btn-primary" href="{% url 'cotizar' %}">{% icon 'send' 18 %}Solicitar cotización</a><a class="btn" href="{% url 'vuelos' %}">Ver ofertas</a></div></div></div>{% endif %}
+    </section>
+    <aside class="stack">
+      <div class="card"><div class="card-body">
+        <div class="section-head" style="margin-bottom:10px"><h3>Próximas citas</h3><a class="small" href="{% url 'citas' %}">Ver todas</a></div>
+        {% for c in citas %}{% include 'core/partials/cita_mini.html' %}{% empty %}<p class="muted small">No tienes citas programadas.</p>{% endfor %}
+      </div></div>
+      <div class="card"><div class="card-body">
+        <h3 style="margin-bottom:12px">Acciones rápidas</h3>
+        <div class="quick">
+          <a href="{% url 'cotizar' %}">{% icon 'send' 18 %}Solicitar cotización</a>
+          <a href="{% url 'pagos' %}">{% icon 'upload' 18 %}Enviar comprobante de pago</a>
+          <a href="{% url 'contacto' %}">{% icon 'message' 18 %}Contactar a la agencia</a>
+        </div>
+      </div></div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'core/panel/base.html' %}
+{% load ui %}
+{% block title %}{% if e %}Editar {{ e.codigo }}{% else %}Nuevo expediente{% endif %}{% endblock %}
+{% block content %}
+{% if e %}{% include 'core/partials/hero.html' with hero_icon='clipboard' hero_title='Editar '|add:e.codigo hero_sub=e.get_tipo_display back_url=e.get_panel_url back_label=e.codigo variante='panel' estrecho=True %}
+{% else %}{% url 'panel_expedientes' as back %}{% include 'core/partials/hero.html' with hero_icon='plus' hero_title='Nuevo expediente' hero_sub='Un expediente por cada servicio contratado.' back_url=back back_label='Expedientes' variante='panel' estrecho=True %}{% endif %}
+<div class="container container--narrow lift">
+  <form method="post" class="card card-elevated" novalidate data-submit-once>{% csrf_token %}
+    {% if solicitud %}<input type="hidden" name="solicitud" value="{{ solicitud.pk }}">{% endif %}
+    <div class="card-body">
+      {% if solicitud %}<div class="alert" style="margin-bottom:20px">{% icon 'info' 20 %}<div>Datos tomados de la solicitud <strong>{{ solicitud.codigo }}</strong>. Revísalos y completa lo que falte.</div></div>{% endif %}
+      {% include 'core/partials/form_errors.html' %}
+      <div class="form-section">
+        <div class="form-section-title"><span class="num">1</span>Servicio y responsable</div>
+        <div class="grid grid-2">
+          {% if form.usuario %}{% include 'core/partials/field.html' with field=form.usuario cls='span-all' %}<p class="hint span-all" style="margin-top:-8px">Al elegir la cuenta se proponen sus datos guardados para que los revises.</p>{% endif %}
+          {% if form.tipo %}{% include 'core/partials/radios.html' with field=form.tipo cls='span-all' %}{% endif %}
+          {% if form.asesor %}{% include 'core/partials/field.html' with field=form.asesor %}{% endif %}
+          {% include 'core/partials/field.html' with field=form.precio_total icon='dollar' %}
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title"><span class="num">2</span>Titular</div>
+        <div class="grid grid-2">
+          {% include 'core/partials/field.html' with field=form.nombre icon='user' %}
+          {% include 'core/partials/field.html' with field=form.documento_identidad icon='id' %}
+          {% include 'core/partials/field.html' with field=form.telefono icon='phone' %}
+          {% include 'core/partials/field.html' with field=form.email icon='mail' %}
+        </div>
+      </div>
+      <div class="form-section" {% if form.tipo %}data-show-when="tipo=visa"{% elif e.tipo != 'visa' %}hidden{% endif %}>
+        <div class="form-section-title"><span class="num">3</span>Datos de la visa</div>
+        <div class="grid grid-3">
+          {% include 'core/partials/field.html' with field=form.pais icon='globe' %}
+          {% include 'core/partials/field.html' with field=form.tipo_visa %}
+          {% include 'core/partials/field.html' with field=form.pasaporte icon='passport' %}
+        </div>
+        <datalist id="paises"><option value="Estados Unidos"><option value="España (Schengen)"><option value="Canadá"><option value="Reino Unido"><option value="Tailandia"><option value="México"></datalist>
+        <datalist id="tipos-visa"><option value="Turismo"><option value="Negocios"><option value="Estudios"><option value="Trabajo"><option value="Reagrupación familiar"><option value="Tránsito"></datalist>
+      </div>
+      <div class="form-section" {% if form.tipo %}data-show-when="tipo=paquete"{% elif e.tipo != 'paquete' %}hidden{% endif %}>
+        <div class="form-section-title"><span class="num">3</span>Paquete contratado</div>
+        <div class="grid grid-2">
+          {% include 'core/partials/field.html' with field=form.paquete_nombre icon='suitcase' %}
+          {% include 'core/partials/field.html' with field=form.destino icon='pin' %}
+          {% include 'core/partials/field.html' with field=form.fecha_salida %}
+          {% include 'core/partials/field.html' with field=form.fecha_regreso %}
+          {% include 'core/partials/field.html' with field=form.servicios_incluidos cls='span-all' %}
+          {% include 'core/partials/field.html' with field=form.itinerario cls='span-all' %}
+        </div>
+      </div>
+      <div class="form-section" {% if form.tipo %}data-show-when="tipo=vuelo"{% elif e.tipo != 'vuelo' %}hidden{% endif %}>
+        <p class="note">{% icon 'info' 16 %}<span>Los vuelos, la aerolínea y el boleto emitido se registran en el expediente después de crearlo.</span></p>
+      </div>
+      <div class="form-actions"><a class="btn btn-ghost" href="{% if e %}{{ e.get_panel_url }}{% else %}{% url 'panel_expedientes' %}{% endif %}">Cancelar</a>
+        <button class="btn btn-primary btn-lg" type="submit">{% icon 'check' 18 %}{% if e %}Guardar cambios{% else %}Crear expediente{% endif %}</button></div>
+    </div>
+  </form>
+</div>
+{% if usuarios_json %}{{ usuarios_json|json_script:"usuarios-data" }}{% endif %}
+{% endblock %}

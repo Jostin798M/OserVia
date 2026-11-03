@@ -1,0 +1,10 @@
+Hola {{ user.first_name|default:user.email }}:
+
+Recibimos una solicitud para cambiar la contraseña de tu cuenta en OserVia ({{ site_name }}).
+Para crear una nueva contraseña abre este enlace (vence en 24 horas y solo puede usarse una vez):
+
+{{ protocol }}://{{ domain }}{% url 'recuperar_confirmar' uidb64=uid token=token %}
+
+Si no fuiste tú, ignora este mensaje: tu contraseña seguirá igual.
+
+{{ sitio.nombre|default:"OSERTRAVEL EC" }}

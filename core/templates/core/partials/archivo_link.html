@@ -1,0 +1,5 @@
+{% load ui %}<a class="file-item" href="{% url 'archivo' tipo pk %}" target="_blank" rel="noopener">
+  <span class="file-ext" data-ext="{{ ext|upper }}">{{ ext|upper|default:'DOC' }}</span>
+  <span style="min-width:0"><span class="file-name" style="display:block">{{ nombre }}</span>{% if sub %}<span class="file-size">{{ sub }}</span>{% endif %}</span>
+  <span class="icon-btn" style="width:34px;height:34px" aria-hidden="true">{% icon 'download' 16 %}</span>
+</a>

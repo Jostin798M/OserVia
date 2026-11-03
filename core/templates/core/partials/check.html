@@ -1,0 +1,5 @@
+{% load ui %}<div class="field{% if cls %} {{ cls }}{% endif %}">
+  <label class="check">{{ field }} {% firstof label field.label %}</label>
+  {% if field.help_text %}<p class="hint">{{ field.help_text }}</p>{% endif %}
+  {% for e in field.errors %}<p class="error" role="alert">{% icon 'alert' 14 %}{{ e }}</p>{% endfor %}
+</div>

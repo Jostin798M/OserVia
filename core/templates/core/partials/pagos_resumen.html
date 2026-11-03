@@ -1,0 +1,5 @@
+{% load ui %}<div class="money">
+  <div><span>Precio total</span><strong>{% if e.precio_total is not None %}${{ e.precio_total|floatformat:"2g" }}{% else %}Por definir{% endif %}</strong></div>
+  <div><span>Abonos confirmados</span><strong class="ok">${{ e.total_abonado|floatformat:"2g" }}</strong></div>
+  <div><span>Saldo pendiente</span><strong class="{% if e.saldo and e.saldo > 0 %}due{% endif %}">{% if e.saldo is not None %}${{ e.saldo|floatformat:"2g" }}{% else %}—{% endif %}</strong></div>
+</div>

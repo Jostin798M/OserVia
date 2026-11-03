@@ -1,0 +1,9 @@
+{% extends 'core/auth_base.html' %}
+{% load ui %}
+{% block title %}Contraseña actualizada{% endblock %}
+{% block content %}
+<span class="feature-icon feature-icon--accent">{% icon 'check' 22 %}</span>
+<h1 style="margin-top:16px">Contraseña actualizada</h1>
+<p class="lead">Ya puedes iniciar sesión con tu nueva contraseña.</p>
+<a class="btn btn-primary btn-block" href="{% url 'login' %}">Iniciar sesión</a>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% load ui %}<form method="post" class="card card-elevated" id="consulta" novalidate data-submit-once>
+  {% csrf_token %}
+  <div class="card-body">
+    <div class="card-title">
+      <span class="ct-icon">{% icon 'message' 20 %}</span>
+      <div><h2 style="font-size:1.2rem">Solicita información</h2><p>Sin necesidad de crear una cuenta. Te llamaremos o escribiremos.</p></div>
+    </div>
+    {% include 'core/partials/form_errors.html' %}
+    <div class="grid grid-2">
+      {% include 'core/partials/field.html' with field=form.nombre icon='user' %}
+      {% include 'core/partials/field.html' with field=form.telefono icon='phone' %}
+      {% include 'core/partials/field.html' with field=form.motivo cls='span-all' %}
+    </div>
+    {{ form.sitio_web }}
+    <div class="form-actions">
+      <p class="note">{% icon 'shield' 16 %}<span>Usaremos tus datos solo para responder tu consulta.</span></p>
+      <button type="submit" class="btn btn-primary" data-loading="Enviando…"><span data-label>Enviar consulta</span>{% icon 'send' 18 %}</button>
+    </div>
+  </div>
+</form>

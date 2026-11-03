@@ -1,0 +1,30 @@
+{% extends 'core/public/base.html' %}
+{% load ui %}
+{% block title %}Nosotros{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='users' hero_title='Nosotros' hero_sub=sitio.nombre|add:' · '|add:sitio.eslogan %}
+<div class="container lift">
+  <div class="detail-grid">
+    <div class="stack">
+      {% if sitio.historia %}<div class="card"><div class="card-body"><h2 class="h-card">Nuestra historia</h2><p class="prose">{{ sitio.historia|linebreaksbr }}</p></div></div>{% endif %}
+      <div class="grid grid-2">
+        {% if sitio.mision %}<div class="card"><div class="card-body"><span class="feature-icon">{% icon 'star' 20 %}</span><h2 class="h-card" style="margin-top:12px">Misión</h2><p class="prose">{{ sitio.mision|linebreaksbr }}</p></div></div>{% endif %}
+        {% if sitio.vision %}<div class="card"><div class="card-body"><span class="feature-icon feature-icon--accent">{% icon 'globe' 20 %}</span><h2 class="h-card" style="margin-top:12px">Visión</h2><p class="prose">{{ sitio.vision|linebreaksbr }}</p></div></div>{% endif %}
+      </div>
+      {% if beneficios %}<div class="card"><div class="card-body"><h2 class="h-card">¿Por qué viajar con nosotros?</h2>
+        <div class="grid grid-2" style="margin-top:6px">{% for b in beneficios %}<div class="benefit benefit--flat"><span class="feature-icon feature-icon--accent">{% icon b.icono 18 %}</span><div><h3>{{ b.titulo }}</h3><p>{{ b.descripcion }}</p></div></div>{% endfor %}</div>
+      </div></div>{% endif %}
+    </div>
+    <aside class="stack sticky-side">
+      <div class="card"><div class="card-body">
+        <h2 class="h-card">Ubicación</h2>
+        <ul class="contact-list">
+          <li>{% icon 'pin' 18 %}<span><strong>{{ sitio.direccion }}</strong><br>{{ sitio.ciudad }}</span></li>
+          <li>{% icon 'clock' 18 %}<span>{{ sitio.horario }}</span></li>
+        </ul>
+        <a class="btn btn-block" style="margin-top:14px" href="{% firstof sitio.mapa_url 'https://www.google.com/maps/search/?api=1&query=Tungurahua+y+Hurtado+Guayaquil' %}" target="_blank" rel="noopener">{% icon 'pin' 18 %}Ver en el mapa</a>
+      </div></div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

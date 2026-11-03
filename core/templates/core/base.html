@@ -1,0 +1,47 @@
+{% load static ui %}<!doctype html>
+<html lang="es">
+<head>
+  {% include 'core/partials/head.html' %}
+  <title>{% block title %}Mi cuenta{% endblock %} · OserVia</title>
+</head>
+<body class="has-tabbar {% block body_class %}{% endblock %}">
+  {% include 'core/partials/icons.html' %}
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  {% with n=request.resolver_match.url_name %}
+  <header class="topbar">
+    <div class="container">
+      {% include 'core/partials/brand.html' %}
+      <nav class="nav" aria-label="Mi cuenta">
+        <a href="{% url 'dashboard' %}" {% if n == 'dashboard' %}aria-current="page"{% endif %}>{% icon 'home' 18 %}Inicio</a>
+        <a href="{% url 'mis_solicitudes' %}" {% if n in 'mis_solicitudes solicitud cotizar' %}aria-current="page"{% endif %}>{% icon 'send' 18 %}Cotizaciones</a>
+        <a href="{% url 'expedientes' %}" {% if n in 'expedientes expediente' %}aria-current="page"{% endif %}>{% icon 'clipboard' 18 %}Expedientes</a>
+        <a href="{% url 'citas' %}" {% if n == 'citas' %}aria-current="page"{% endif %}>{% icon 'calendar' 18 %}Mis citas</a>
+        <a href="{% url 'pagos' %}" {% if n == 'pagos' %}aria-current="page"{% endif %}>{% icon 'dollar' 18 %}Pagos</a>
+      </nav>
+      <div class="topbar-actions">
+        {% include 'core/partials/theme_toggle.html' %}
+        <a class="user-chip" href="{% url 'perfil' %}" title="Mi perfil · {{ user.email }}" aria-label="Mi perfil" {% if n == 'perfil' %}aria-current="page"{% endif %}>
+          <span class="avatar" aria-hidden="true">{% include 'core/partials/initials.html' %}</span>
+          <span class="name">{{ user.first_name|default:user.email }}</span>
+        </a>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+          <button type="submit" class="icon-btn" title="Cerrar sesión" aria-label="Cerrar sesión">{% icon 'logout' 18 %}</button>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  {% include 'core/partials/toasts.html' %}
+  <main id="contenido">{% block content %}{% endblock %}</main>
+
+  <nav class="tabbar tabbar--5" aria-label="Navegación inferior">
+    <a href="{% url 'dashboard' %}" {% if n == 'dashboard' %}aria-current="page"{% endif %}>{% icon 'home' 22 %}<span>Inicio</span></a>
+    <a href="{% url 'mis_solicitudes' %}" {% if n in 'mis_solicitudes solicitud cotizar' %}aria-current="page"{% endif %}>{% icon 'send' 22 %}<span>Cotizar</span></a>
+    <a href="{% url 'expedientes' %}" {% if n in 'expedientes expediente' %}aria-current="page"{% endif %}>{% icon 'clipboard' 22 %}<span>Trámites</span></a>
+    <a href="{% url 'citas' %}" {% if n == 'citas' %}aria-current="page"{% endif %}>{% icon 'calendar' 22 %}<span>Citas</span></a>
+    <a href="{% url 'pagos' %}" {% if n == 'pagos' %}aria-current="page"{% endif %}>{% icon 'dollar' 22 %}<span>Pagos</span></a>
+  </nav>
+  {% endwith %}
+  <script src="{% static 'core/js/app.js' %}" defer></script>
+</body>
+</html>

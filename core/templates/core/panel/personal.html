@@ -1,0 +1,39 @@
+{% extends 'core/panel/base.html' %}
+{% load ui %}
+{% block title %}Personal{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='shield' hero_title='Personal' hero_sub='Asesores y administradores. Solo el administrador puede crear estas cuentas.' variante='panel' %}
+<div class="container lift">
+  <div class="detail-grid">
+    <section class="card"><div class="card-body">
+      <h2 class="h-card">Cuentas del personal</h2>
+      <div class="req-list">
+        {% for p in personal %}
+        <div class="req client-row">
+          <span class="avatar avatar--admin" style="width:44px;height:44px;border-radius:12px">{% icon 'shield' 18 %}</span>
+          <span class="req-main"><span class="req-title">{% firstof p.get_full_name p.email %}{% if p == user %} (tú){% endif %}</span>
+            <span class="req-meta"><span>{{ p.email }}</span><span>{{ p.perfil.get_rol_display }}</span><span>{{ p.n_exp }} expediente{{ p.n_exp|pluralize }} en curso</span></span></span>
+          <span class="req-side">{% if not p.is_active %}<span class="badge badge--danger">Deshabilitada</span>{% endif %}{% if p != user %}{% include 'core/panel/_cuenta_toggle.html' with cuenta=p %}{% endif %}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div></section>
+    <form method="post" class="card card-elevated" novalidate data-submit-once>{% csrf_token %}
+      <div class="card-body">
+        <div class="card-title"><span class="ct-icon">{% icon 'plus' 20 %}</span><div><h2 style="font-size:1.1rem">Crear cuenta</h2><p>Para un asesor o un administrador.</p></div></div>
+        {% include 'core/partials/form_errors.html' %}
+        <div class="grid grid-2">
+          {% include 'core/partials/field.html' with field=form.first_name %}
+          {% include 'core/partials/field.html' with field=form.last_name %}
+          {% include 'core/partials/field.html' with field=form.email icon='mail' cls='span-all' %}
+          {% include 'core/partials/field.html' with field=form.telefono icon='phone' %}
+          {% include 'core/partials/field.html' with field=form.rol %}
+          {% include 'core/partials/field.html' with field=form.password1 icon='lock' %}
+          {% include 'core/partials/field.html' with field=form.password2 icon='lock' %}
+        </div>
+        <button class="btn btn-primary btn-block" style="margin-top:16px" type="submit">Crear cuenta</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

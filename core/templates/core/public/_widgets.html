@@ -1,0 +1,28 @@
+{% load ui %}
+{# RS-04.4: botón de WhatsApp en todas las páginas públicas #}
+{% if sitio.whatsapp %}
+<a class="fab fab--wa" href="{{ sitio.whatsapp_url }}?text={{ 'Hola, quisiera información sobre sus servicios.'|urlencode }}" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp" title="Escríbenos por WhatsApp">{% icon 'whatsapp' 26 %}</a>
+{% endif %}
+
+{# RS-04.1: asistente virtual #}
+<button type="button" class="fab fab--chat" data-chat-open aria-controls="asistente" aria-expanded="false" aria-label="Abrir asistente virtual" title="Asistente virtual">{% icon 'message' 24 %}</button>
+<section class="chat" id="asistente" hidden aria-label="Asistente virtual" data-chat data-url="{% url 'asistente' %}">
+  <header class="chat-head">
+    <span class="chat-avatar">{% icon 'headset' 18 %}</span>
+    <div><strong>Asistente de {{ sitio.nombre }}</strong><span>Respuestas automáticas</span></div>
+    <button type="button" class="icon-btn" data-chat-close aria-label="Cerrar asistente">{% icon 'x' 16 %}</button>
+  </header>
+  <div class="chat-log" data-chat-log aria-live="polite">
+    <div class="msg msg--bot">¡Hola! Puedo ayudarte con nuestros servicios, cómo solicitar una cotización y los horarios de atención. ¿Qué necesitas?</div>
+    <div class="chat-sugerencias">
+      <button type="button" data-chat-q="¿Qué servicios ofrecen?">Servicios</button>
+      <button type="button" data-chat-q="¿Cómo solicito una cotización?">Cotizar</button>
+      <button type="button" data-chat-q="¿Cuál es el horario de atención?">Horarios</button>
+    </div>
+  </div>
+  <form class="chat-form" data-chat-form>
+    <label class="sr-only" for="chat-q">Tu pregunta</label>
+    <input id="chat-q" class="input" name="q" autocomplete="off" maxlength="300" placeholder="Escribe tu pregunta…">
+    <button class="icon-btn" type="submit" aria-label="Enviar">{% icon 'send' 18 %}</button>
+  </form>
+</section>

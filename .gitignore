@@ -1,0 +1,21 @@
+# Entorno de Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Base de datos y archivos subidos (se recrean con migrate y cargar_demo)
+db.sqlite3
+test_db.sqlite3
+media/
+
+# Datos sensibles: no publicar
+CREDENCIALES.md
+CREDENCIALES.pdf
+.env
+
+# Editores y sistema
+.vscode/
+.idea/
+*.swp
+.DS_Store

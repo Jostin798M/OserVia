@@ -1,0 +1,9 @@
+{% load ui %}<details class="add-form" id="{{ accion }}"{% if abrir == accion %} open{% endif %}>
+  <summary>{% icon 'plus' 16 %}{{ titulo }}</summary>
+  <form method="post" {% if multipart %}enctype="multipart/form-data"{% endif %} novalidate data-submit-once>{% csrf_token %}
+    <input type="hidden" name="accion" value="{{ accion }}">
+    {% include 'core/partials/form_errors.html' %}
+    <div class="grid grid-2">{% include 'core/partials/form_fields.html' %}</div>
+    <div class="form-actions" style="margin-top:14px"><button class="btn btn-primary btn-sm" type="submit">{% icon 'check' 16 %}Guardar</button></div>
+  </form>
+</details>

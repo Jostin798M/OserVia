@@ -1,0 +1,26 @@
+{% extends 'core/panel/base.html' %}
+{% load ui %}
+{% block title %}Usuarios{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='users' hero_title='Usuarios' hero_sub='Cuentas de clientes registradas en el portal.' variante='panel' %}
+<div class="container lift">
+  <div class="card"><div class="card-body">
+    <form method="get" class="search" role="search">
+      <div class="control has-icon" style="flex:1">{% icon 'search' 18 'control-icon' %}<input class="input" type="search" name="q" value="{{ q }}" placeholder="Buscar usuario…" aria-label="Buscar por nombre, correo, cédula o teléfono"></div>
+      <button class="btn btn-primary" type="submit">Buscar</button>
+    </form>
+    <p class="muted small" style="margin:14px 0 12px">{{ pagina.paginator.count }} usuario{{ pagina.paginator.count|pluralize }}</p>
+    <div class="req-list">
+      {% for c in pagina %}
+      <div class="req client-row">
+        <span class="avatar" style="width:44px;height:44px;border-radius:12px">{% if c.first_name %}{{ c.first_name|first|upper }}{{ c.last_name|first|upper }}{% else %}{{ c.email|first|upper }}{% endif %}</span>
+        <a class="req-main" href="{% url 'panel_cliente' c.pk %}"><span class="req-title">{% firstof c.get_full_name c.email %}</span>
+          <span class="req-meta"><span>{{ c.email }}</span>{% if c.perfil.telefono %}<span>{{ c.perfil.telefono }}</span>{% endif %}<span>{{ c.n_exp }} exp. · {{ c.n_sol }} cot.</span></span></a>
+        <span class="req-side">{% if not c.is_active %}<span class="badge badge--danger">Deshabilitada</span>{% endif %}{% include 'core/panel/_cuenta_toggle.html' with cuenta=c %}</span>
+      </div>
+      {% empty %}<div class="empty">{% include 'core/partials/empty_art.html' %}<h3>Sin usuarios</h3></div>{% endfor %}
+    </div>
+    {% include 'core/partials/paginacion.html' %}
+  </div></div>
+</div>
+{% endblock %}

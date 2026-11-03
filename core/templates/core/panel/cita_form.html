@@ -1,0 +1,26 @@
+{% extends 'core/panel/base.html' %}
+{% load ui %}
+{% block title %}{% if cita %}Editar cita{% else %}Nueva cita{% endif %}{% endblock %}
+{% block content %}
+{% url 'panel_agenda' as back %}
+{% include 'core/partials/hero.html' with hero_icon='calendar' hero_title=cita|yesno:'Editar o reprogramar cita,Programar cita' hero_sub='La cita aparecerá en «Mis citas» del usuario.' back_url=back back_label='Agenda' variante='panel' estrecho=True %}
+<div class="container container--narrow lift">
+  <form method="post" class="card card-elevated" novalidate data-submit-once>{% csrf_token %}
+    <div class="card-body">
+      {% include 'core/partials/form_errors.html' %}
+      <div class="grid grid-2">
+        {% include 'core/partials/field.html' with field=form.usuario icon='user' %}
+        {% include 'core/partials/field.html' with field=form.asesor icon='shield' %}
+        {% include 'core/partials/field.html' with field=form.motivo cls='span-all' %}
+        {% include 'core/partials/radios.html' with field=form.modalidad cls='span-all' %}
+        {% include 'core/partials/field.html' with field=form.fecha %}
+        {% include 'core/partials/field.html' with field=form.hora %}
+        <div class="span-all" data-show-when="modalidad=virtual">{% include 'core/partials/field.html' with field=form.enlace icon='globe' %}</div>
+        <div class="span-all" data-show-when="modalidad=presencial">{% include 'core/partials/field.html' with field=form.direccion icon='pin' %}</div>
+        {% if form.estado %}{% include 'core/partials/field.html' with field=form.estado %}{% endif %}
+      </div>
+      <div class="form-actions"><a class="btn btn-ghost" href="{% url 'panel_agenda' %}">Cancelar</a><button class="btn btn-primary btn-lg" type="submit">{% icon 'check' 18 %}Guardar cita</button></div>
+    </div>
+  </form>
+</div>
+{% endblock %}

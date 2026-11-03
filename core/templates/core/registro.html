@@ -1,0 +1,30 @@
+{% extends 'core/auth_base.html' %}
+{% load ui %}
+{% block title %}Crear cuenta{% endblock %}
+{% block content %}
+<h1>Crea tu cuenta</h1>
+<p class="lead">En un minuto podrás solicitar cotizaciones y trámites de visa.</p>
+
+{% if form.non_field_errors %}
+<div class="alert alert--error" role="alert" style="margin-bottom:20px">{% icon 'alert' 20 %}<div>{{ form.non_field_errors|join:" " }}</div></div>
+{% endif %}
+
+<form method="post" class="stack" novalidate data-submit-once>
+  {% csrf_token %}
+  <div class="grid grid-2">
+    {% include 'core/partials/field.html' with field=form.first_name %}
+    {% include 'core/partials/field.html' with field=form.last_name %}
+  </div>
+  {% include 'core/partials/field.html' with field=form.email icon='mail' %}
+  {% include 'core/partials/field.html' with field=form.telefono icon='phone' %}
+  {% include 'core/partials/field.html' with field=form.password1 icon='lock' %}
+  {% include 'core/partials/field.html' with field=form.password2 icon='lock' %}
+  <div class="field">
+    <label class="check check--legal">{{ form.acepto }}<span>Acepto los <a href="{% url 'terminos' %}" target="_blank" rel="noopener">Términos y condiciones</a> y la <a href="{% url 'privacidad' %}" target="_blank" rel="noopener">Política de privacidad</a>, y autorizo el tratamiento de mis datos para gestionar mis servicios.</span></label>
+    {% for e in form.acepto.errors %}<p class="error" role="alert">{% icon 'alert' 14 %}{{ e }}</p>{% endfor %}
+  </div>
+  <button type="submit" class="btn btn-primary btn-lg btn-block" data-loading="Creando cuenta…"><span data-label>Crear cuenta</span>{% icon 'arrow-right' 18 %}</button>
+</form>
+
+<p class="auth-alt">¿Ya tienes cuenta? <a href="{% url 'login' %}">Iniciar sesión</a></p>
+{% endblock %}

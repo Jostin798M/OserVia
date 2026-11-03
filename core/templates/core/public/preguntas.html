@@ -1,0 +1,9 @@
+{% extends 'core/public/base.html' %}
+{% load ui %}
+{% block title %}Preguntas frecuentes{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='info' hero_title='Preguntas frecuentes' hero_sub='¿No encuentras tu respuesta? Pregúntale al asistente virtual o escríbenos.' estrecho=True %}
+<div class="container container--narrow lift">
+  <div class="card"><div class="card-body">{% include 'core/public/_faq.html' with abrir_primera=True %}</div></div>
+</div>
+{% endblock %}

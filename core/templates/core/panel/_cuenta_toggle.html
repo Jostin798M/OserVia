@@ -1,0 +1,4 @@
+{% load ui %}<form method="post" action="{% url 'panel_cuenta_estado' cuenta.pk %}" class="inline" {% if cuenta.is_active %}onsubmit="return confirm('¿Deshabilitar la cuenta de {{ cuenta.email|escapejs }}? No podrá iniciar sesión; sus registros se conservan.')"{% endif %}>{% csrf_token %}
+  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+  {% if cuenta.is_active %}<button class="btn btn-sm btn-danger" type="submit">{% icon 'lock' 16 %}Deshabilitar</button>{% else %}<button class="btn btn-sm btn-accent" type="submit">{% icon 'check' 16 %}Habilitar</button>{% endif %}
+</form>

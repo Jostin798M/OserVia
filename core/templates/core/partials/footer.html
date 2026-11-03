@@ -1,0 +1,49 @@
+{% load static ui %}<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        {% include 'core/partials/brand.html' %}
+        <p>{{ sitio.descripcion }}</p>
+        {% if sitio.instagram or sitio.facebook or sitio.whatsapp %}
+        <div class="footer-social">
+          {% if sitio.instagram %}<a href="{{ sitio.instagram }}" target="_blank" rel="noopener" aria-label="Instagram">{% icon 'instagram' 18 %}</a>{% endif %}
+          {% if sitio.facebook %}<a href="{{ sitio.facebook }}" target="_blank" rel="noopener" aria-label="Facebook">{% icon 'facebook' 18 %}</a>{% endif %}
+          {% if sitio.whatsapp %}<a href="{{ sitio.whatsapp_url }}" target="_blank" rel="noopener" aria-label="WhatsApp">{% icon 'whatsapp' 18 %}</a>{% endif %}
+        </div>
+        {% endif %}
+      </div>
+      <nav class="footer-col" aria-label="Secciones">
+        <h2>Secciones</h2>
+        <ul>
+          <li><a href="{% url 'inicio' %}">Inicio</a></li>
+          <li><a href="{% url 'vuelos' %}">Vuelos</a></li>
+          <li><a href="{% url 'paquetes' %}">Paquetes turísticos</a></li>
+          <li><a href="{% url 'nosotros' %}">Nosotros</a></li>
+          <li><a href="{% url 'contacto' %}">Contacto</a></li>
+        </ul>
+      </nav>
+      <nav class="footer-col" aria-label="Más">
+        <h2>Más</h2>
+        <ul>
+          <li><a href="{% url 'visas' %}">Asesoría de visas</a></li>
+          <li><a href="{% url 'promociones' %}">Promociones</a></li>
+          <li><a href="{% url 'preguntas' %}">Preguntas frecuentes</a></li>
+          <li>{% if user.is_authenticated %}<a href="{% if es_personal %}{% url 'panel_inicio' %}{% else %}{% url 'dashboard' %}{% endif %}">Mi cuenta</a>{% else %}<a href="{% url 'login' %}">Iniciar sesión</a>{% endif %}</li>
+        </ul>
+      </nav>
+      <div class="footer-col footer-contact">
+        <h2>Contacto</h2>
+        <ul>
+          <li>{% icon 'pin' 16 %}<span>{{ sitio.direccion }}<br>{{ sitio.ciudad }}</span></li>
+          <li>{% icon 'phone-call' 16 %}<a href="tel:{{ sitio.telefono|cut:' ' }}">{{ sitio.telefono }}</a></li>
+          <li>{% icon 'mail' 16 %}<a href="mailto:{{ sitio.email }}">{{ sitio.email }}</a></li>
+          <li>{% icon 'clock' 16 %}<span>{{ sitio.horario }}</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; {% now "Y" %} {{ sitio.nombre }}. Todos los derechos reservados. · <a href="{% url 'privacidad' %}">Política de privacidad</a> · <a href="{% url 'terminos' %}">Términos y condiciones</a></p>
+      <a class="footer-top" href="#contenido">{% icon 'arrow-up' 16 %}Volver arriba</a>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,35 @@
+{% extends 'core/public/base.html' %}
+{% load ui %}
+{% block title %}Vuelos{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='plane' hero_title='Ofertas de vuelos' hero_sub='Busca entre los vuelos publicados por la agencia. Combina los filtros que necesites.' %}
+<div class="container lift">
+  <form method="get" class="card card-elevated search-card" role="search" aria-label="Buscar vuelos">
+    <div class="card-body">
+      <div class="grid grid-4">
+        {% include 'core/partials/field.html' with field=form.destino icon='pin' %}
+        {% include 'core/partials/field.html' with field=form.fecha %}
+        {% include 'core/partials/field.html' with field=form.precio_max icon='dollar' %}
+        {% include 'core/partials/field.html' with field=form.duracion_max icon='clock' %}
+      </div>
+      <div class="form-actions" style="margin-top:16px">
+        {% if filtrando %}<a class="btn btn-ghost" href="{% url 'vuelos' %}">Limpiar filtros</a>{% endif %}
+        <button class="btn btn-primary" type="submit">{% icon 'search' 18 %}Buscar vuelos</button>
+      </div>
+    </div>
+  </form>
+
+  <section class="section" aria-live="polite">
+    {% if ofertas %}
+      <p class="muted small" style="margin-bottom:12px">{{ ofertas|length }} oferta{{ ofertas|length|pluralize }}{% if filtrando %} que cumple{{ ofertas|length|pluralize:"n" }} todos los filtros{% endif %}</p>
+      <div class="cards-grid">{% for o in ofertas %}{% include 'core/public/_oferta_card.html' %}{% endfor %}</div>
+    {% else %}
+      <div class="card"><div class="empty">{% include 'core/partials/empty_art.html' %}
+        <h3>{% if filtrando %}No encontramos vuelos con esos filtros{% else %}No hay ofertas de vuelos publicadas{% endif %}</h3>
+        <p>{% if filtrando %}Prueba con otro destino, otra fecha o un precio mayor. {% endif %}También puedes pedirnos una cotización a tu medida.</p>
+        <div class="actions"><a class="btn btn-primary" href="{% url 'cotizar' %}?tipo=vuelo">{% icon 'send' 18 %}Solicitar cotización</a>{% if filtrando %}<a class="btn" href="{% url 'vuelos' %}">Ver todas las ofertas</a>{% endif %}</div>
+      </div></div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

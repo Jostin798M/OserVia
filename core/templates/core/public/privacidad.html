@@ -1,0 +1,55 @@
+{% extends 'core/public/base.html' %}
+{% load ui %}
+{% block title %}Política de privacidad{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='shield' hero_title='Política de privacidad' hero_sub='Cómo tratamos y protegemos tus datos personales.' estrecho=True %}
+<div class="container container--narrow lift">
+  <article class="card"><div class="card-body legal">
+    {% include 'core/public/_legal_aviso.html' %}
+    <div class="legal-meta"><span>Última actualización: 3 de noviembre de 2026</span><span>Responsable: {{ sitio.nombre }}</span></div>
+
+    <h2>1. Quién es responsable de tus datos</h2>
+    <p>{{ sitio.nombre }}, con domicilio en {{ sitio.direccion }}, {{ sitio.ciudad }}, es responsable del tratamiento de los datos personales que entregas a través de OserVia. Para cualquier asunto relacionado con tus datos escríbenos a <a href="mailto:{{ sitio.email }}">{{ sitio.email }}</a>.</p>
+
+    <h2>2. Qué datos recopilamos</h2>
+    <ul>
+      <li><strong>Identificación y contacto:</strong> nombres, apellidos, cédula o pasaporte, correo electrónico y teléfono.</li>
+      <li><strong>Datos de tus viajes y trámites:</strong> destinos, fechas, pasajeros, tipo de visa, citas y resultados consulares que nos informes.</li>
+      <li><strong>Documentos que nos entregas:</strong> pasaporte, estados de cuenta, certificados, reservas y otros solicitados para tu servicio.</li>
+      <li><strong>Pagos:</strong> montos, fechas, números y archivos de los comprobantes que envías. No almacenamos datos de tarjetas.</li>
+      <li><strong>Datos técnicos mínimos:</strong> los necesarios para mantener tu sesión iniciada y proteger tu cuenta.</li>
+    </ul>
+
+    <h2>3. Para qué usamos tus datos</h2>
+    <ul>
+      <li>Preparar cotizaciones y prestar los servicios que contratas (asesoría de visas, boletería, paquetes y seguros).</li>
+      <li>Revisar tu documentación y darte seguimiento desde tu cuenta.</li>
+      <li>Registrar tus pagos, abonos y saldos.</li>
+      <li>Programar citas y responder tus consultas.</li>
+      <li>Cumplir obligaciones legales y atender requerimientos de autoridades competentes.</li>
+    </ul>
+    <p>La base para tratar tus datos es tu consentimiento y la ejecución del servicio que solicitas o contratas.</p>
+
+    <h2>4. Con quién los compartimos</h2>
+    <p>Solo compartimos lo estrictamente necesario con terceros que intervienen en tu servicio: consulados y entidades migratorias, aerolíneas, hoteles, operadores turísticos y aseguradoras. No vendemos ni cedemos tus datos con fines comerciales.</p>
+
+    <h2>5. Cuánto tiempo los conservamos</h2>
+    <p>Conservamos tus datos mientras tengas una cuenta activa o un servicio en curso, y luego durante el tiempo necesario para cumplir obligaciones legales o atender reclamos. Después los eliminamos o anonimizamos.</p>
+
+    <h2>6. Cómo los protegemos</h2>
+    <p>Tus documentos solo pueden verlos tú y el personal asignado a tu caso. Las contraseñas se guardan cifradas, el acceso se bloquea tras varios intentos fallidos y la plataforma publicada utiliza conexión segura (HTTPS).</p>
+
+    <h2>7. Tus derechos</h2>
+    <p>Puedes ejercer en cualquier momento tus derechos de acceso, rectificación y actualización, eliminación, oposición, portabilidad y suspensión del tratamiento, así como revocar tu consentimiento. Escríbenos a <a href="mailto:{{ sitio.email }}">{{ sitio.email }}</a> indicando tu nombre y el derecho que deseas ejercer. Puedes actualizar varios de tus datos directamente desde «Mi perfil».</p>
+
+    <h2>8. Cookies y almacenamiento local</h2>
+    <p>Usamos únicamente cookies necesarias para mantener tu sesión y proteger los formularios, y guardamos en tu navegador tu preferencia de modo claro u oscuro. No usamos cookies publicitarias.</p>
+
+    <h2>9. Menores de edad</h2>
+    <p>Los datos de menores de edad que viajan o tramitan una visa deben ser entregados por su representante legal.</p>
+
+    <h2>10. Cambios a esta política</h2>
+    <p>Si actualizamos esta política lo indicaremos en esta página con la fecha de la última actualización.</p>
+  </div></article>
+</div>
+{% endblock %}

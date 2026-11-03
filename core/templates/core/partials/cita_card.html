@@ -1,0 +1,14 @@
+{% load ui %}<article class="cita{% if c.estado == 'cancelada' %} cita--off{% endif %}">
+  <div class="cita-date"><strong>{{ c.fecha|date:"j" }}</strong><span>{{ c.fecha|date:"M" }}</span><small>{{ c.fecha|date:"Y" }}</small></div>
+  <div class="cita-body">
+    <div class="cita-head"><strong>{{ c.motivo }}</strong>{% include 'core/partials/badge.html' with tono=c.tono texto=c.get_estado_display %}</div>
+    <ul class="cita-meta">
+      <li>{% icon 'clock' 16 %}{{ c.fecha|date:"l" }} · {{ c.hora|time:"H:i" }}</li>
+      <li>{% if c.modalidad == 'virtual' %}{% icon 'globe' 16 %}{% else %}{% icon 'pin' 16 %}{% endif %}{{ c.get_modalidad_display }}</li>
+      <li>{% icon 'user' 16 %}{% if panel %}{% firstof c.usuario.get_full_name c.usuario.email %}{% else %}Asesor: {% firstof c.asesor.get_full_name c.asesor.email 'Por confirmar' %}{% endif %}</li>
+    </ul>
+    {% if c.modalidad == 'virtual' and c.enlace and c.estado != 'cancelada' %}<a class="btn btn-primary btn-sm" href="{{ c.enlace }}" target="_blank" rel="noopener">{% icon 'globe' 16 %}Abrir enlace de la reunión</a>
+    {% elif c.modalidad == 'presencial' %}<p class="small"><strong>Dirección:</strong> {{ c.direccion }}</p>{% endif %}
+    {% if panel %}<div style="margin-top:10px"><a class="btn btn-sm" href="{% url 'panel_cita' c.pk %}">{% icon 'calendar' 16 %}Editar / reprogramar</a>{% if c.expediente %} <a class="btn btn-sm btn-ghost" href="{{ c.expediente.get_panel_url }}">{{ c.expediente.codigo }}</a>{% endif %}</div>{% endif %}
+  </div>
+</article>

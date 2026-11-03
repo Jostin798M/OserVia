@@ -1,0 +1,26 @@
+{% extends 'core/panel/base.html' %}
+{% load ui %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+{% url 'panel_contenido' as back %}
+{% include 'core/partials/hero.html' with hero_icon='globe' hero_title=titulo back_url=back back_label='Contenido' variante='panel' %}
+<div class="container lift">
+  <div class="card"><div class="card-body">
+    <div class="section-head"><p class="muted">Publica o retira elementos sin borrarlos.</p><a class="btn btn-primary btn-sm" href="{% url 'panel_contenido_nuevo' seccion %}">{% icon 'plus' 16 %}Nuevo/a</a></div>
+    <div class="req-list">
+      {% for o in items %}
+      <div class="req client-row">
+        <span class="req-icon">{% icon 'file' 20 %}</span>
+        <a class="req-main" href="{% url 'panel_contenido_editar' seccion o.pk %}"><span class="req-title">{{ o }}</span>
+          <span class="req-meta">{% if o.precio_persona %}<span>${{ o.precio_persona|floatformat:"0g" }} por persona</span><span>Sale {{ o.fecha_salida|date:"j M Y" }}</span>{% endif %}{% if o.fecha_fin %}<span>{{ o.fecha_inicio|date:"j M" }} – {{ o.fecha_fin|date:"j M Y" }}{% if not o.vigente %} (no vigente){% endif %}</span>{% endif %}<span>Actualizado {{ o.actualizado|date:"j M Y" }}</span></span></a>
+        <span class="req-side">
+          <span class="badge badge--{% if o.publicado %}success{% else %}neutral{% endif %}">{{ o.publicado|yesno:"Publicado,Oculto" }}</span>
+          <form method="post" class="inline">{% csrf_token %}<input type="hidden" name="accion" value="publicar"><input type="hidden" name="id" value="{{ o.pk }}"><button class="btn btn-sm" type="submit">{{ o.publicado|yesno:"Retirar,Publicar" }}</button></form>
+          <form method="post" class="inline" onsubmit="return confirm('¿Eliminar definitivamente?')">{% csrf_token %}<input type="hidden" name="accion" value="eliminar"><input type="hidden" name="id" value="{{ o.pk }}"><button class="icon-btn icon-btn--sm" type="submit" aria-label="Eliminar" title="Eliminar">{% icon 'x' 14 %}</button></form>
+        </span>
+      </div>
+      {% empty %}<div class="empty">{% include 'core/partials/empty_art.html' %}<h3>Sin elementos</h3><p>Crea el primero.</p></div>{% endfor %}
+    </div>
+  </div></div>
+</div>
+{% endblock %}

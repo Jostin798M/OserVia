@@ -1,0 +1,113 @@
+{% extends 'core/public/base.html' %}
+{% load ui %}
+{% block content %}
+<section class="hero hero--home">
+  {% include 'core/partials/hero_art.html' %}
+  <div class="container fade-up">
+    <p class="eyebrow">{% icon 'pin' 14 %}{{ sitio.ciudad }}</p>
+    <h1 class="h-hero">{{ sitio.eslogan }}</h1>
+    <p class="lead-hero">{{ sitio.descripcion }}</p>
+    <div class="hero-actions">
+      <a class="btn btn-lg btn-light" href="{% url 'vuelos' %}">{% icon 'plane' 18 %}Buscar vuelos</a>
+      <a class="btn btn-lg btn-ghost-light" href="{% url 'paquetes' %}">{% icon 'suitcase' 18 %}Ver paquetes</a>
+      {% if sitio.video_tutorial %}<button type="button" class="btn btn-lg btn-ghost-light" data-tutorial-open>{% icon 'play' 18 %}Cómo usar OserVia</button>{% endif %}
+    </div>
+  </div>
+</section>
+
+<div class="container lift">
+  {% if servicios %}
+  <section id="servicios" aria-labelledby="t-servicios">
+    <h2 id="t-servicios" class="sr-only">Servicios</h2>
+    <div class="cards-grid">
+      {% for s in servicios %}
+      <article class="feature fade-up">
+        <span class="feature-icon">{% icon s.icono 22 %}</span>
+        <h3>{{ s.titulo }}</h3>
+        <p>{{ s.descripcion }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if promociones %}
+  <section class="section" aria-labelledby="t-promos">
+    <div class="section-head"><div><h2 id="t-promos">Promociones vigentes</h2><p>Solicítalas dentro del período indicado.</p></div>
+      <a class="btn btn-sm" href="{% url 'promociones' %}">Ver todas{% icon 'arrow-right' 16 %}</a></div>
+    <div class="cards-grid">
+      {% for p in promociones %}{% include 'core/public/_promo.html' %}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if vuelos %}
+  <section class="section" aria-labelledby="t-vuelos">
+    <div class="section-head"><div><h2 id="t-vuelos">Ofertas de vuelos</h2><p>Precios por persona publicados por la agencia.</p></div>
+      <a class="btn btn-sm" href="{% url 'vuelos' %}">Buscar vuelos{% icon 'arrow-right' 16 %}</a></div>
+    <div class="cards-grid">{% for o in vuelos %}{% include 'core/public/_oferta_card.html' %}{% endfor %}</div>
+  </section>
+  {% endif %}
+
+  {% if paquetes %}
+  <section class="section" aria-labelledby="t-paquetes">
+    <div class="section-head"><div><h2 id="t-paquetes">Paquetes turísticos</h2><p>Vuelo, hotel y actividades en un solo plan.</p></div>
+      <a class="btn btn-sm" href="{% url 'paquetes' %}">Ver paquetes{% icon 'arrow-right' 16 %}</a></div>
+    <div class="cards-grid">{% for o in paquetes %}{% include 'core/public/_oferta_card.html' %}{% endfor %}</div>
+  </section>
+  {% endif %}
+
+  {% if beneficios %}
+  <section class="section band" aria-labelledby="t-por-que">
+    <div class="section-head"><div><h2 id="t-por-que">¿Por qué viajar con nosotros?</h2></div></div>
+    <div class="cards-grid cards-grid--4">
+      {% for b in beneficios %}
+      <article class="benefit"><span class="feature-icon feature-icon--accent">{% icon b.icono 20 %}</span><h3>{{ b.titulo }}</h3><p>{{ b.descripcion }}</p></article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if sitio.video_tutorial %}
+  <section class="section" aria-labelledby="t-tutorial">
+    <div class="tutorial-card">
+      <div><h2 id="t-tutorial">¿Primera vez en OserVia?</h2><p>Mira en un video corto cómo consultar servicios, solicitar una cotización y contactar a la agencia.</p></div>
+      <button type="button" class="btn btn-primary btn-lg" data-tutorial-open>{% icon 'play' 18 %}Ver tutorial</button>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if publicaciones %}
+  <section class="section" aria-labelledby="t-redes">
+    <div class="section-head"><div><h2 id="t-redes">En nuestras redes</h2><p>Publicaciones seleccionadas por la agencia.</p></div>
+      {% if sitio.instagram %}<a class="btn btn-sm" href="{{ sitio.instagram }}" target="_blank" rel="noopener">{% icon 'instagram' 16 %}Instagram</a>{% endif %}</div>
+    <div class="posts">
+      {% for p in publicaciones %}
+      <article class="post">
+        {% if p.video %}<video controls preload="metadata" playsinline {% if p.imagen %}poster="{% url 'archivo_publico' 'imagen' p.pk %}"{% endif %}><source src="{% url 'archivo_publico' 'video' p.pk %}"></video>
+        {% elif p.imagen %}<img src="{% url 'archivo_publico' 'imagen' p.pk %}" alt="{{ p.titulo }}" loading="lazy">{% endif %}
+        <div class="post-body"><strong>{{ p.titulo }}</strong>{% if p.texto %}<p>{{ p.texto|truncatewords:24 }}</p>{% endif %}
+          <span class="muted small">{{ p.fecha|date:"j M Y" }}{% if p.enlace %} · <a href="{{ p.enlace }}" target="_blank" rel="noopener">Ver publicación</a>{% endif %}</span></div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="section split" aria-labelledby="t-faq">
+    <div>
+      <div class="section-head"><div><h2 id="t-faq">Preguntas frecuentes</h2><p>Lo que más nos consultan.</p></div></div>
+      {% include 'core/public/_faq.html' with preguntas=preguntas %}
+      <a class="btn btn-sm" style="margin-top:14px" href="{% url 'preguntas' %}">Ver todas las preguntas{% icon 'arrow-right' 16 %}</a>
+    </div>
+    <div>{% include 'core/public/_consulta_form.html' %}</div>
+  </section>
+</div>
+
+{% if sitio.video_tutorial %}
+<dialog class="modal" data-tutorial aria-label="Video tutorial">
+  <div class="modal-head"><strong>Cómo usar OserVia</strong><button type="button" class="icon-btn" data-tutorial-close aria-label="Cerrar video">{% icon 'x' 16 %}</button></div>
+  <video controls preload="none" playsinline src="{% url 'archivo_publico' 'tutorial' 0 %}"></video>
+</dialog>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'core/panel/base.html' %}
+{% load ui %}
+{% block title %}Cotizaciones{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='send' hero_title='Solicitudes de cotización' hero_sub=es_admin|yesno:'Todas las solicitudes de vuelos y paquetes.,Solicitudes que tienes asignadas.' variante='panel' %}
+<div class="container lift">
+  <div class="card"><div class="card-body">
+    <form method="get" class="search" role="search">
+      <input type="hidden" name="estado" value="{{ estado }}">
+      <div class="control has-icon" style="flex:1">{% icon 'search' 18 'control-icon' %}<input class="input" type="search" name="q" value="{{ q }}" placeholder="Buscar solicitud…" aria-label="Buscar por código, nombre, cédula, destino u oferta"></div>
+      <button class="btn btn-primary" type="submit">Buscar</button>
+    </form>
+    <nav class="chips" aria-label="Estado" style="margin:14px 0">
+      <a class="chip" href="?estado=abiertas&q={{ q|urlencode }}" {% if estado == 'abiertas' %}aria-current="true"{% endif %}>Abiertas</a>
+      {% if es_admin %}<a class="chip" href="?estado=sin_asignar&q={{ q|urlencode }}" {% if estado == 'sin_asignar' %}aria-current="true"{% endif %}>Sin asignar</a>{% endif %}
+      {% for v, l in estados %}<a class="chip" href="?estado={{ v }}&q={{ q|urlencode }}" {% if estado == v %}aria-current="true"{% endif %}>{{ l }}</a>{% endfor %}
+      <a class="chip" href="?estado=todas&q={{ q|urlencode }}" {% if estado == 'todas' %}aria-current="true"{% endif %}>Todas</a>
+    </nav>
+    {% if pagina.object_list %}<div class="req-list">{% for s in pagina %}{% include 'core/partials/sol_item.html' with panel=True %}{% endfor %}</div>{% include 'core/partials/paginacion.html' %}
+    {% else %}<div class="empty">{% include 'core/partials/empty_art.html' %}<h3>Sin resultados</h3><p>No hay solicitudes en este filtro.</p></div>{% endif %}
+  </div></div>
+</div>
+{% endblock %}

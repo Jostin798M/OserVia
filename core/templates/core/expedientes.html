@@ -1,0 +1,14 @@
+{% extends 'core/base.html' %}
+{% load ui %}
+{% block title %}Mis expedientes{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='clipboard' hero_title='Mis expedientes' hero_sub='Cada servicio contratado tiene su expediente: etapa, documentos, citas y pagos.' %}
+<div class="container lift">
+  <div class="card"><div class="card-body">
+    {% if items %}<div class="req-list">{% for e in items %}{% include 'core/partials/exp_item.html' %}{% endfor %}</div>
+    {% else %}<div class="empty">{% include 'core/partials/empty_art.html' %}<h3>Aún no tienes expedientes</h3>
+      <p>Tu asesor abre un expediente cuando contratas un servicio: asesoría de visa, vuelo o paquete turístico.</p>
+      <div class="actions"><a class="btn btn-primary" href="{% url 'cotizar' %}">Solicitar cotización</a><a class="btn" href="{% url 'visas' %}">Asesoría de visas</a></div></div>{% endif %}
+  </div></div>
+</div>
+{% endblock %}

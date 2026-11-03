@@ -1,0 +1,21 @@
+{% extends 'core/base.html' %}
+{% load ui %}
+{% block title %}Mis cotizaciones{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='send' hero_title='Mis cotizaciones' hero_sub='Tus solicitudes de vuelos y paquetes y las propuestas de tu asesor.' %}
+<div class="container lift">
+  <div class="card"><div class="card-body">
+    <div class="filters">
+      <nav class="chips" aria-label="Filtrar">
+        <a class="chip" href="?estado=todas" {% if estado == 'todas' %}aria-current="true"{% endif %}>Todas</a>
+        <a class="chip" href="?estado=curso" {% if estado == 'curso' %}aria-current="true"{% endif %}>{% icon 'hourglass' 16 %}En curso</a>
+        <a class="chip" href="?estado=finalizadas" {% if estado == 'finalizadas' %}aria-current="true"{% endif %}>{% icon 'check' 16 %}Respondidas</a>
+      </nav>
+      <a class="btn btn-primary btn-sm" href="{% url 'cotizar' %}">{% icon 'plus' 16 %}Nueva solicitud</a>
+    </div>
+    {% if items %}<div class="req-list">{% for s in items %}{% include 'core/partials/sol_item.html' %}{% endfor %}</div>
+    {% else %}<div class="empty">{% include 'core/partials/empty_art.html' %}<h3>No hay solicitudes aquí</h3><p>Solicita una cotización y la verás en esta lista.</p>
+      <div class="actions"><a class="btn btn-primary" href="{% url 'cotizar' %}">Solicitar cotización</a></div></div>{% endif %}
+  </div></div>
+</div>
+{% endblock %}

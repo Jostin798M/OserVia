@@ -1,0 +1,53 @@
+{% extends 'core/public/base.html' %}
+{% load ui %}
+{% block title %}Términos y condiciones{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='file' hero_title='Términos y condiciones' hero_sub='Condiciones de uso de OserVia y de los servicios de la agencia.' estrecho=True %}
+<div class="container container--narrow lift">
+  <article class="card"><div class="card-body legal">
+    {% include 'core/public/_legal_aviso.html' %}
+    <div class="legal-meta"><span>Última actualización: 3 de noviembre de 2026</span><span>{{ sitio.nombre }} · {{ sitio.ciudad }}</span></div>
+
+    <h2>1. Aceptación</h2>
+    <p>Al crear una cuenta o iniciar sesión en OserVia aceptas estos términos y la <a href="{% url 'privacidad' %}">Política de privacidad</a>. Si no estás de acuerdo, no utilices la plataforma.</p>
+
+    <h2>2. Qué es OserVia</h2>
+    <p>OserVia es la plataforma de atención y seguimiento de {{ sitio.nombre }}. Permite consultar servicios y ofertas, solicitar cotizaciones, entregar documentos, consultar citas y registrar pagos. No compra ni emite boletos ni pólizas, y no se conecta con aerolíneas ni consulados: esas gestiones se realizan fuera de la plataforma.</p>
+
+    <h2>3. Tu cuenta</h2>
+    <ul>
+      <li>Debes entregar información verdadera y mantenerla actualizada.</li>
+      <li>Eres responsable de guardar tu contraseña y de la actividad realizada con tu cuenta.</li>
+      <li>La agencia puede deshabilitar cuentas que se usen de forma indebida; tus registros se conservan.</li>
+    </ul>
+
+    <h2>4. Ofertas y cotizaciones</h2>
+    <p>Las ofertas publicadas son referenciales y no confirman disponibilidad. El precio y las condiciones finales son los de la cotización que te envía tu asesor, válida hasta la fecha indicada. Aceptar una cotización expresa tu intención de contratar; la reserva se confirma según las condiciones indicadas en ella.</p>
+
+    <h2>5. Asesoría de visas</h2>
+    <p>La agencia te acompaña en la preparación de tu trámite, pero <strong>no garantiza la aprobación de la visa</strong>: la decisión corresponde únicamente a la entidad consular. Los honorarios de asesoría no se reembolsan por una decisión desfavorable. Eres responsable de la veracidad de los documentos y de la información de tus formularios.</p>
+
+    <h2>6. Pagos</h2>
+    <ul>
+      <li>Los pagos se realizan por transferencia o depósito bancario y se registran enviando el comprobante desde tu cuenta.</li>
+      <li>Un comprobante se descuenta de tu saldo solo cuando la agencia confirma el pago.</li>
+      <li>Las condiciones de abonos y plazos dependen de cada servicio y constan en tu cotización. La agencia no otorga crédito.</li>
+    </ul>
+
+    <h2>7. Documentos</h2>
+    <p>Los archivos que subes deben ser legibles y corresponder al documento solicitado. La revisión del asesor no verifica su autenticidad ni garantiza su aceptación por terceros.</p>
+
+    <h2>8. Uso adecuado</h2>
+    <p>No está permitido acceder a información de otras personas, intentar vulnerar la seguridad de la plataforma ni usarla con fines distintos a los de tus servicios con la agencia.</p>
+
+    <h2>9. Responsabilidad</h2>
+    <p>La agencia no responde por cambios, retrasos o cancelaciones decididos por aerolíneas, consulados u otros proveedores, aunque te informará los avisos que reciba a través de tu cuenta.</p>
+
+    <h2>10. Ley aplicable</h2>
+    <p>Estos términos se rigen por las leyes de la República del Ecuador. Cualquier controversia se someterá a los jueces competentes de la ciudad de Guayaquil.</p>
+
+    <h2>11. Contacto</h2>
+    <p>Para dudas sobre estos términos escríbenos a <a href="mailto:{{ sitio.email }}">{{ sitio.email }}</a> o llama al {{ sitio.telefono }}.</p>
+  </div></article>
+</div>
+{% endblock %}

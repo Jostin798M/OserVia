@@ -1,0 +1,19 @@
+{% load ui %}<article class="offer">
+  <div class="offer-top offer-top--{{ o.tipo }}">
+    <span class="offer-icon">{% if o.tipo == 'vuelo' %}{% icon 'plane' 22 %}{% else %}{% icon 'suitcase' 22 %}{% endif %}</span>
+    {% if o.promocion_vigente %}<span class="offer-promo">{% icon 'star' 14 %}{{ o.promocion_vigente.titulo }}</span>{% endif %}
+    <h3>{{ o.titulo }}</h3>
+    <p>{% if o.tipo == 'vuelo' %}{{ o.origen }} → {{ o.destino }}{% else %}{{ o.destino }} · {{ o.duracion_dias }} día{{ o.duracion_dias|pluralize }}{% endif %}</p>
+  </div>
+  <div class="offer-body">
+    <ul class="offer-meta">
+      <li>{% icon 'calendar' 16 %}{{ o.fecha_salida|date:"j M Y" }}{% if o.fecha_regreso %} – {{ o.fecha_regreso|date:"j M Y" }}{% endif %}</li>
+      {% if o.tipo == 'vuelo' %}<li>{% icon 'clock' 16 %}{{ o.duracion_horas|floatformat:"-1" }} h de vuelo</li>{% endif %}
+      {% if o.incluye_seguro %}<li>{% icon 'shield' 16 %}Incluye seguro</li>{% endif %}
+    </ul>
+    <div class="offer-foot">
+      <div class="price"><span>Desde</span><strong>${{ o.precio_persona|floatformat:"0g" }}</strong><span>por persona</span></div>
+      <a class="btn btn-primary btn-sm" href="{{ o.get_absolute_url }}">Ver oferta{% icon 'arrow-right' 16 %}</a>
+    </div>
+  </div>
+</article>

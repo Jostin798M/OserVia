@@ -1,0 +1,7 @@
+{% load ui %}{% if pagina.paginator.num_pages > 1 %}
+<nav class="pager" aria-label="Paginación">
+  {% if pagina.has_previous %}<a class="btn btn-sm" href="?{% for k, v in request.GET.items %}{% if k != 'p' %}{{ k }}={{ v|urlencode }}&{% endif %}{% endfor %}p={{ pagina.previous_page_number }}">{% icon 'arrow-left' 16 %}Anterior</a>{% else %}<span></span>{% endif %}
+  <span class="muted small">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+  {% if pagina.has_next %}<a class="btn btn-sm" href="?{% for k, v in request.GET.items %}{% if k != 'p' %}{{ k }}={{ v|urlencode }}&{% endif %}{% endfor %}p={{ pagina.next_page_number }}">Siguiente{% icon 'arrow-right' 16 %}</a>{% else %}<span></span>{% endif %}
+</nav>
+{% endif %}

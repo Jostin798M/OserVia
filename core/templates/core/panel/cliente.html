@@ -1,0 +1,34 @@
+{% extends 'core/panel/base.html' %}
+{% load ui %}
+{% block title %}{% firstof cliente.get_full_name cliente.email %}{% endblock %}
+{% block content %}
+{% url 'panel_clientes' as back %}
+{% include 'core/partials/hero.html' with hero_icon='user' hero_title=cliente.get_full_name|default:cliente.email hero_sub=cliente.email back_url=back back_label='Usuarios' variante='panel' %}
+<div class="container lift">
+  <div class="detail-grid">
+    <section class="card"><div class="card-body">
+      <div class="section-head"><h2 class="h-card" style="margin:0">Solicitudes y expedientes</h2><a class="btn btn-sm btn-accent" href="{% url 'panel_expediente_nuevo' %}?usuario={{ cliente.pk }}">{% icon 'plus' 16 %}Nuevo expediente</a></div>
+      {% if items %}<div class="req-list">{% for x in items %}{% if x.kind == 'viaje' %}{% include 'core/partials/sol_item.html' with s=x panel=True %}{% else %}{% include 'core/partials/exp_item.html' with e=x panel=True %}{% endif %}{% endfor %}</div>
+      {% else %}<p class="muted">Este usuario todavía no tiene solicitudes ni expedientes.</p>{% endif %}
+    </div></section>
+    <aside class="stack">
+      <div class="card"><div class="card-body">
+        <h3 class="h-card">Datos de la cuenta</h3>
+        <dl class="dl dl--1">
+          <div><dt>Teléfono</dt><dd>{{ cliente.perfil.telefono|default:'—' }}</dd></div>
+          <div><dt>Cédula / pasaporte</dt><dd>{{ cliente.perfil.cedula|default:'—' }}</dd></div>
+          <div><dt>Registrado</dt><dd>{{ cliente.date_joined|date:"j M Y" }}</dd></div>
+          <div><dt>Último acceso</dt><dd>{{ cliente.last_login|date:"j M Y, H:i"|default:"Nunca" }}</dd></div>
+          <div><dt>Estado</dt><dd>{{ cliente.is_active|yesno:"Habilitada,Deshabilitada" }}</dd></div>
+        </dl>
+        <div style="margin-top:14px">{% include 'core/panel/_cuenta_toggle.html' with cuenta=cliente %}</div>
+      </div></div>
+      <div class="card"><div class="card-body">
+        <h3 class="h-card">Citas</h3>
+        {% for c in citas %}{% include 'core/partials/cita_mini.html' %}{% empty %}<p class="muted small">Sin citas.</p>{% endfor %}
+        <a class="btn btn-block btn-sm" style="margin-top:12px" href="{% url 'panel_cita_nueva' %}?usuario={{ cliente.pk }}">{% icon 'plus' 16 %}Programar cita</a>
+      </div></div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

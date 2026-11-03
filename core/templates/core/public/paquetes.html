@@ -1,0 +1,15 @@
+{% extends 'core/public/base.html' %}
+{% load ui %}
+{% block title %}Paquetes turísticos{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='suitcase' hero_title='Paquetes turísticos' hero_sub='Vuelo, alojamiento, traslados y actividades según cada paquete.' %}
+<div class="container lift">
+  {% if ofertas %}
+    <div class="cards-grid">{% for o in ofertas %}{% include 'core/public/_oferta_card.html' %}{% endfor %}</div>
+  {% else %}
+    <div class="card"><div class="empty">{% include 'core/partials/empty_art.html' %}<h3>No hay paquetes publicados</h3>
+      <p>Cuéntanos a dónde quieres ir y te armamos un plan.</p>
+      <div class="actions"><a class="btn btn-primary" href="{% url 'cotizar' %}?tipo=paquete">Solicitar cotización</a></div></div></div>
+  {% endif %}
+</div>
+{% endblock %}

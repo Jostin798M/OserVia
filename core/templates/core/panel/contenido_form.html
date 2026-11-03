@@ -1,0 +1,16 @@
+{% extends 'core/panel/base.html' %}
+{% load ui %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+{% if seccion == 'sitio' %}{% url 'panel_contenido' as back %}{% else %}{% url 'panel_contenido_lista' seccion as back %}{% endif %}
+{% include 'core/partials/hero.html' with hero_icon='file' hero_title=obj|yesno:'Editar,Nuevo/a'|add:' · '|add:singular hero_sub=titulo back_url=back back_label=titulo variante='panel' estrecho=True %}
+<div class="container container--narrow lift">
+  <form method="post" enctype="multipart/form-data" class="card card-elevated" novalidate data-submit-once>{% csrf_token %}
+    <div class="card-body">
+      {% include 'core/partials/form_errors.html' %}
+      <div class="grid grid-2">{% include 'core/partials/form_fields.html' %}</div>
+      <div class="form-actions"><a class="btn btn-ghost" href="{{ back }}">Cancelar</a><button class="btn btn-primary btn-lg" type="submit">{% icon 'check' 18 %}Guardar</button></div>
+    </div>
+  </form>
+</div>
+{% endblock %}

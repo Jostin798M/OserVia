@@ -1,0 +1,77 @@
+{% load static ui %}<!doctype html>
+<html lang="es">
+<head>
+  {% include 'core/partials/head.html' %}
+  <meta name="robots" content="noindex, nofollow">
+  <title>{% block title %}Panel{% endblock %} · Panel OserVia</title>
+</head>
+<body class="panel">
+  {% include 'core/partials/icons.html' %}
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  {% with n=request.resolver_match.url_name %}
+  <div class="app">
+    {# ------------------------------------------------ Barra lateral #}
+    <aside class="sidebar" id="sidebar" aria-label="Menú del panel">
+      <div class="sidebar-head">
+        <a class="sidebar-brand" href="{% url 'panel_inicio' %}" aria-label="Panel, ir al resumen">
+          {% include 'core/partials/logo.html' with cls='sidebar-logo' %}
+          <span class="sidebar-label">{% if es_admin %}Panel de administración{% else %}Panel de asesores{% endif %}</span>
+        </a>
+        <button type="button" class="icon-btn sidebar-close" data-sidebar-close aria-label="Cerrar menú">{% icon 'x' 16 %}</button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="{% url 'panel_inicio' %}" {% if n == 'panel_inicio' %}aria-current="page"{% endif %}>{% icon 'home' 18 %}<span>Resumen</span></a>
+
+        <p class="sidebar-group">Atención</p>
+        <a href="{% url 'panel_consultas' %}" {% if n == 'panel_consultas' %}aria-current="page"{% endif %}>{% icon 'message' 18 %}<span>Consultas</span>{% if pendientes.consultas %}<b class="count">{{ pendientes.consultas }}</b>{% endif %}</a>
+        <a href="{% url 'panel_solicitudes' %}" {% if n in 'panel_solicitudes panel_solicitud' %}aria-current="page"{% endif %}>{% icon 'send' 18 %}<span>Cotizaciones</span>{% if pendientes.solicitudes %}<b class="count">{{ pendientes.solicitudes }}</b>{% endif %}</a>
+        <a href="{% url 'panel_expedientes' %}" {% if n in 'panel_expedientes panel_expediente panel_expediente_nuevo panel_expediente_editar' %}aria-current="page"{% endif %}>{% icon 'clipboard' 18 %}<span>Expedientes</span></a>
+        <a href="{% url 'panel_documentos' %}" {% if n == 'panel_documentos' %}aria-current="page"{% endif %}>{% icon 'file' 18 %}<span>Documentos</span>{% if pendientes.documentos %}<b class="count">{{ pendientes.documentos }}</b>{% endif %}</a>
+        <a href="{% url 'panel_agenda' %}" {% if n in 'panel_agenda panel_cita panel_cita_nueva' %}aria-current="page"{% endif %}>{% icon 'calendar' 18 %}<span>Agenda</span></a>
+
+        <p class="sidebar-group">Finanzas</p>
+        <a href="{% url 'panel_pagos' %}" {% if n == 'panel_pagos' %}aria-current="page"{% endif %}>{% icon 'dollar' 18 %}<span>Pagos</span>{% if pendientes.pagos %}<b class="count">{{ pendientes.pagos }}</b>{% endif %}</a>
+
+        {% if es_admin %}
+        <p class="sidebar-group">Administración</p>
+        <a href="{% url 'panel_clientes' %}" {% if n in 'panel_clientes panel_cliente' %}aria-current="page"{% endif %}>{% icon 'users' 18 %}<span>Usuarios</span></a>
+        <a href="{% url 'panel_personal' %}" {% if n == 'panel_personal' %}aria-current="page"{% endif %}>{% icon 'shield' 18 %}<span>Personal</span></a>
+        <a href="{% url 'panel_contenido' %}" {% if 'contenido' in n or n == 'panel_sitio' %}aria-current="page"{% endif %}>{% icon 'globe' 18 %}<span>Contenido público</span></a>
+        {% endif %}
+      </nav>
+
+      <div class="sidebar-foot">
+        <a class="sidebar-link" href="{% url 'inicio' %}" target="_blank" rel="noopener">{% icon 'globe' 16 %}Ver sitio público</a>
+        <a class="sidebar-user" href="{% url 'perfil' %}" {% if n == 'perfil' %}aria-current="page"{% endif %}>
+          <span class="avatar avatar--admin" aria-hidden="true">{% icon 'shield' 16 %}</span>
+          <span><strong>{{ user.get_full_name|default:user.email }}</strong><small>{% if es_admin %}Administrador{% else %}Asesor{% endif %} · Mi perfil</small></span>
+        </a>
+      </div>
+    </aside>
+    <div class="sidebar-backdrop" data-sidebar-close hidden></div>
+
+    {# ------------------------------------------------ Contenido #}
+    <div class="app-main">
+      <header class="topbar app-topbar">
+        <div class="container">
+          <button type="button" class="icon-btn menu-btn" data-sidebar-open aria-controls="sidebar" aria-expanded="false" aria-label="Abrir menú">{% icon 'list' 18 %}</button>
+          <a class="app-topbar-brand" href="{% url 'panel_inicio' %}">{% include 'core/partials/logo.html' with cls='brand-logo brand-logo--sm' %}</a>
+          <p class="app-title">{% block section %}{% endblock %}</p>
+          <div class="topbar-actions">
+            {% include 'core/partials/theme_toggle.html' %}
+            <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+              <button type="submit" class="btn btn-sm" title="Cerrar sesión">{% icon 'logout' 16 %}<span class="hide-xs-inline">Salir</span></button>
+            </form>
+          </div>
+        </div>
+      </header>
+
+      {% include 'core/partials/toasts.html' %}
+      <main id="contenido">{% block content %}{% endblock %}</main>
+    </div>
+  </div>
+  {% endwith %}
+  <script src="{% static 'core/js/app.js' %}" defer></script>
+</body>
+</html>

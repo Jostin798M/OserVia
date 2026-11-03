@@ -1,0 +1,18 @@
+{% extends 'core/base.html' %}
+{% load ui %}
+{% block title %}Mis citas{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='calendar' hero_title='Mis citas' hero_sub='Citas programadas por tu asesor con la agencia.' %}
+<div class="container container--narrow lift">
+  <div class="card"><div class="card-body">
+    <h2 class="h-card">Próximas</h2>
+    {% if proximas %}<div class="stack">{% for c in proximas %}{% include 'core/partials/cita_card.html' %}{% endfor %}</div>
+    {% else %}<div class="empty" style="padding:20px 0">{% include 'core/partials/empty_art.html' %}<h3>No tienes citas registradas</h3><p>Cuando tu asesor programe una cita, la verás aquí con la fecha, la hora y el enlace o la dirección.</p></div>{% endif %}
+  </div></div>
+  {% if pasadas %}
+  <details class="card section"><summary class="card-body summary-row">Citas anteriores o canceladas ({{ pasadas|length }})</summary>
+    <div class="card-body stack" style="padding-top:0">{% for c in pasadas %}{% include 'core/partials/cita_card.html' %}{% endfor %}</div>
+  </details>
+  {% endif %}
+</div>
+{% endblock %}

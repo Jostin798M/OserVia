@@ -1,0 +1,80 @@
+{% extends 'core/base.html' %}
+{% load ui %}
+{% block title %}Mi perfil{% endblock %}
+{% block content %}
+<section class="hero hero--compact">
+  {% include 'core/partials/hero_art.html' %}
+  <div class="container">
+    <div class="profile-head">
+      <span class="avatar-lg" aria-hidden="true">{% include 'core/partials/initials.html' %}</span>
+      <div style="min-width:0">
+        <h1 style="font-size:clamp(1.4rem,1.1rem + 1.2vw,2rem)">{{ user.get_full_name|default:user.email }}</h1>
+        <div class="meta">
+          <span>{% icon 'mail' 14 %}{{ user.email }}</span>
+          <span>{% icon 'calendar' 14 %}Miembro desde {{ user.date_joined|date:"F Y" }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container lift">
+  <div class="profile-grid">
+    <form method="post" class="card" novalidate data-submit-once>
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="datos">
+      <div class="card-body">
+        <div class="card-title">
+          <span class="ct-icon">{% icon 'user' 20 %}</span>
+          <div><h2 style="font-size:1.15rem">Datos personales</h2><p>Se usan para completar tus cotizaciones y trámites.</p></div>
+        </div>
+        {% if accion == 'datos' and datos_form.errors %}
+        <div class="alert alert--error" role="alert" style="margin-bottom:20px">{% icon 'alert' 20 %}<div><strong>Revisa los campos marcados.</strong></div></div>
+        {% endif %}
+        <div class="grid grid-2">
+          {% include 'core/partials/field.html' with field=datos_form.first_name %}
+          {% include 'core/partials/field.html' with field=datos_form.last_name %}
+          {% include 'core/partials/field.html' with field=datos_form.email icon='mail' cls='span-all' %}
+          {% include 'core/partials/field.html' with field=datos_form.telefono icon='phone' %}
+          {% include 'core/partials/field.html' with field=datos_form.cedula icon='id' %}
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" data-loading="Guardando…"><span data-label>Guardar cambios</span>{% icon 'check' 18 %}</button>
+        </div>
+      </div>
+    </form>
+
+    <div class="stack">
+      <form method="post" class="card" novalidate data-submit-once>
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="password">
+        <div class="card-body">
+          <div class="card-title">
+            <span class="ct-icon">{% icon 'lock' 20 %}</span>
+            <div><h2 style="font-size:1.15rem">Seguridad</h2><p>Cambia tu contraseña de acceso.</p></div>
+          </div>
+          {% if accion == 'password' and pass_form.non_field_errors %}
+          <div class="alert alert--error" role="alert" style="margin-bottom:20px">{% icon 'alert' 20 %}<div>{{ pass_form.non_field_errors|join:" " }}</div></div>
+          {% endif %}
+          <div class="stack">
+            {% include 'core/partials/field.html' with field=pass_form.old_password icon='lock' %}
+            {% include 'core/partials/field.html' with field=pass_form.new_password1 icon='lock' %}
+            {% include 'core/partials/field.html' with field=pass_form.new_password2 icon='lock' %}
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-block" data-loading="Actualizando…"><span data-label>Cambiar contraseña</span></button>
+          </div>
+        </div>
+      </form>
+
+      <div class="card"><div class="card-body">
+        <h3 style="margin-bottom:14px">Tu actividad</h3>
+        <div class="mini-stats">
+          <a href="{% url 'mis_solicitudes' %}"><strong>{{ stats.viajes }}</strong><span>Cotizaciones</span></a>
+          <a href="{% url 'expedientes' %}"><strong>{{ stats.expedientes }}</strong><span>Expedientes</span></a>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

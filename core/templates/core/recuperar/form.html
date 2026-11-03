@@ -1,0 +1,13 @@
+{% extends 'core/auth_base.html' %}
+{% load ui %}
+{% block title %}Recuperar contraseña{% endblock %}
+{% block content %}
+<h1>Recupera tu acceso</h1>
+<p class="lead">Escribe el correo de tu cuenta y te enviaremos un enlace para crear una nueva contraseña.</p>
+<form method="post" class="stack" novalidate data-submit-once>
+  {% csrf_token %}
+  {% include 'core/partials/field.html' with field=form.email icon='mail' %}
+  <button type="submit" class="btn btn-primary btn-lg btn-block" data-loading="Enviando…"><span data-label>Enviar enlace</span>{% icon 'send' 18 %}</button>
+</form>
+<p class="auth-alt"><a href="{% url 'login' %}">{% icon 'arrow-left' 14 %} Volver a iniciar sesión</a></p>
+{% endblock %}

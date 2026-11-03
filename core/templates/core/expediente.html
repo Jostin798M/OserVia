@@ -1,0 +1,141 @@
+{% extends 'core/base.html' %}
+{% load ui %}
+{% block title %}{{ e.codigo }}{% endblock %}
+{% block content %}
+{% url 'expedientes' as back %}
+{% if e.es_visa %}{% include 'core/partials/hero.html' with hero_icon='passport' variante='visa' hero_title=e.titulo hero_sub='Expediente '|add:e.codigo back_url=back back_label='Mis expedientes' %}
+{% elif e.tipo == 'paquete' %}{% include 'core/partials/hero.html' with hero_icon='suitcase' hero_title=e.titulo hero_sub='Expediente '|add:e.codigo back_url=back back_label='Mis expedientes' %}
+{% else %}{% include 'core/partials/hero.html' with hero_icon='plane' hero_title=e.titulo hero_sub='Expediente '|add:e.codigo back_url=back back_label='Mis expedientes' %}{% endif %}
+
+<div class="container lift">
+  {% for a in avisos %}
+  <div class="alert alert--warn" style="margin-bottom:14px" role="status">{% icon 'alert' 20 %}<div><strong>{{ a.get_tipo_display }} · {{ a.aerolinea }} {{ a.numero_vuelo }} del {{ a.fecha_vuelo|date:"j M Y" }}</strong><br>{{ a.cambio_informado }}{% if a.nueva_fecha_hora %}<br>Nueva fecha y hora: <strong>{{ a.nueva_fecha_hora|date:"l j M Y, H:i" }}</strong>{% endif %}<br><span class="small muted">Aviso del {{ a.fecha_aviso|date:"j M Y" }}</span></div></div>
+  {% endfor %}
+
+  <div class="detail-grid">
+    <div class="stack">
+      <div class="card"><div class="card-body">
+        <div class="detail-head">
+          <div><span class="detail-code">{{ e.codigo }}</span><h2 class="h-card" style="margin:0">{{ e.get_tipo_display }}</h2></div>
+          {% if e.es_visa %}<span class="badge badge--info">{{ e.get_etapa_display }}</span>{% else %}{% include 'core/partials/badge.html' with tono=e.tono texto=e.get_estado_display %}{% endif %}
+        </div>
+        <dl class="dl">
+          <div><dt>Titular</dt><dd>{{ e.nombre }}</dd></div>
+          <div><dt>Documento</dt><dd>{{ e.documento_identidad }}</dd></div>
+          <div><dt>Asesor responsable</dt><dd>{% if e.asesor %}{{ e.asesor.get_full_name|default:e.asesor.email }}{% else %}Por asignar{% endif %}</dd></div>
+          {% if e.es_visa %}<div><dt>País de destino</dt><dd>{{ e.pais }}</dd></div><div><dt>Tipo de visa</dt><dd>{{ e.tipo_visa }}</dd></div>{% if e.pasaporte %}<div><dt>Pasaporte</dt><dd>{{ e.pasaporte }}</dd></div>{% endif %}{% endif %}
+          <div><dt>Última actualización</dt><dd>{{ e.actualizado|date:"j M Y, H:i" }}</dd></div>
+        </dl>
+      </div></div>
+
+      {% if e.comentario_usuario %}
+      <div class="response">{% icon 'message' 20 %}<div><strong>Comentarios de tu asesor</strong><p style="margin-top:4px">{{ e.comentario_usuario }}</p></div></div>
+      {% endif %}
+
+      {% if e.es_visa %}
+      {# RS-08.4 #}
+      <div class="card"><div class="card-body">
+        <h3 class="h-card">Resultado consular</h3>
+        {% if e.resultado == 'no_registrado' %}<p class="muted">Resultado no registrado.</p>
+        {% else %}<p><span class="badge badge--{% if e.resultado == 'aprobada' %}success{% elif e.resultado == 'negada' %}danger{% else %}neutral{% endif %}">{{ e.get_resultado_display }}</span>
+          <span class="muted small">· informado el {{ e.resultado_fecha|date:"j M Y" }}</span></p>{% if e.resultado_detalle %}<p style="margin-top:8px">{{ e.resultado_detalle }}</p>{% endif %}{% endif %}
+        <p class="hint" style="margin-top:8px">La decisión corresponde a la entidad consular; es independiente de la etapa de la asesoría.</p>
+      </div></div>
+      {% endif %}
+
+      {% if documentos %}
+      <section class="card" id="documentos" aria-labelledby="t-docs"><div class="card-body">
+        <h3 id="t-docs" class="h-card">Documentos solicitados</h3>
+        {% include 'core/partials/doc_estado.html' %}
+        <ul class="docs">
+          {% for d in documentos %}
+          <li class="doc">
+            <div class="doc-head"><div><strong>{{ d.nombre }}</strong>{% if d.indicaciones %}<span class="muted small" style="display:block">{{ d.indicaciones }}</span>{% endif %}</div>
+              {% include 'core/partials/badge.html' with tono=d.tono texto=d.get_estado_display %}</div>
+            {% with c=d.ultima_correccion %}{% if c %}<div class="doc-note">{% icon 'alert' 16 %}<div><strong>Corrección requerida:</strong> {{ c.comentario }}<span class="muted small" style="display:block">Revisado el {{ c.fecha|date:"j M Y, H:i" }}</span></div></div>{% endif %}{% endwith %}
+            {% if d.archivos.all %}<details class="doc-files"><summary>{{ d.archivos.all|length }} archivo{{ d.archivos.all|length|pluralize }} enviado{{ d.archivos.all|length|pluralize }}</summary>
+              <ul class="file-list">{% for a in d.archivos.all %}<li>{% include 'core/partials/archivo_link.html' with tipo='documento' pk=a.pk ext=a.extension nombre=a.nombre_original sub=a.subido|date:"j M Y, H:i" %}</li>{% endfor %}</ul>
+              {% if d.revisiones.all %}<ul class="rev-list">{% for r in d.revisiones.all %}<li><span class="badge badge--neutral">{{ r.get_estado_display }}</span> {{ r.fecha|date:"j M Y, H:i" }}{% if r.comentario %} — {{ r.comentario }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+            </details>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+
+        {% if e.estado == 'en_curso' and form.fields.documento.queryset.exists %}
+        <form method="post" enctype="multipart/form-data" class="upload" novalidate data-submit-once>
+          {% csrf_token %}
+          <h4>{% icon 'upload' 18 %}Entregar un documento</h4>
+          <div class="grid grid-2">
+            {% include 'core/partials/field.html' with field=form.documento %}
+            {% include 'core/partials/field.html' with field=form.archivo %}
+          </div>
+          <div class="form-actions" style="margin-top:14px"><button class="btn btn-accent" type="submit" data-loading="Subiendo…"><span data-label>Enviar archivo</span>{% icon 'upload' 18 %}</button></div>
+        </form>
+        {% endif %}
+      </div></section>
+      {% elif e.es_visa %}
+      <div class="card" id="documentos"><div class="card-body"><h3 class="h-card">Documentos solicitados</h3>{% include 'core/partials/doc_estado.html' %}</div></div>
+      {% endif %}
+
+      {% if vuelos %}
+      <section class="card" aria-labelledby="t-vuelos"><div class="card-body">
+        <h3 id="t-vuelos" class="h-card">Tus vuelos</h3>
+        {% for v in vuelos %}
+        <div class="flight">
+          <div class="flight-head"><strong>{{ v.aerolinea }} · {{ v.numero_vuelo }}</strong>{% if v.boleto %}<a class="btn btn-sm" href="{% url 'archivo' 'boleto' v.pk %}?descargar=1">{% icon 'download' 16 %}Descargar boleto</a>{% endif %}</div>
+          <div class="route-display" style="margin:10px 0 0">
+            <div class="place"><span>{{ v.salida|date:"j M Y · H:i" }}</span><strong>{{ v.origen }}</strong></div>
+            <div class="path">{% icon 'plane' 20 %}</div>
+            <div class="place"><span>{{ v.llegada|date:"j M Y · H:i" }}</span><strong>{{ v.destino }}</strong></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div></section>
+      {% endif %}
+
+      {% if e.tipo == 'paquete' %}
+      <section class="card" aria-labelledby="t-paq"><div class="card-body">
+        <h3 id="t-paq" class="h-card">Tu paquete</h3>
+        <dl class="dl">
+          <div><dt>Paquete</dt><dd>{{ e.paquete_nombre }}</dd></div>
+          <div><dt>Destino</dt><dd>{{ e.destino }}</dd></div>
+          <div><dt>Fechas</dt><dd>{{ e.fecha_salida|date:"j M Y" }} – {{ e.fecha_regreso|date:"j M Y" }}</dd></div>
+        </dl>
+        {% if e.lista_servicios %}<h4 class="h-sub">Servicios incluidos</h4><ul class="checklist">{% for x in e.lista_servicios %}<li>{% icon 'check' 16 %}{{ x }}</li>{% endfor %}</ul>{% endif %}
+        {% if e.itinerario %}<h4 class="h-sub">Itinerario</h4><p class="prose">{{ e.itinerario|linebreaksbr }}</p>{% endif %}
+      </div></section>
+      {% endif %}
+
+      {% if documentos_viaje %}
+      <section class="card"><div class="card-body">
+        <h3 class="h-card">Documentos del viaje</h3>
+        <ul class="file-list" style="margin-top:0">{% for d in documentos_viaje %}<li>{% include 'core/partials/archivo_link.html' with tipo='viaje' pk=d.pk ext=d.archivo.name|slice:"-3:" nombre=d.titulo sub=d.subido|date:"j M Y" %}</li>{% endfor %}</ul>
+      </div></section>
+      {% endif %}
+    </div>
+
+    <aside class="stack">
+      {% if e.es_visa %}
+      <div class="card"><div class="card-body"><h3 class="h-card">Etapa de la asesoría</h3>{% include 'core/partials/etapas.html' %}</div></div>
+      <div class="card"><div class="card-body">
+        <h3 class="h-card">Cita consular</h3>
+        {% if cita_consular %}
+          <ul class="contact-list">
+            <li>{% icon 'calendar' 18 %}<span><strong>{{ cita_consular.fecha|date:"l j M Y" }}</strong><br>{{ cita_consular.hora|time:"H:i" }}</span></li>
+            <li>{% icon 'pin' 18 %}<span><strong>{{ cita_consular.consulado }}</strong><br>{{ cita_consular.direccion }}</span></li>
+          </ul>
+          {% if cita_consular.confirmacion %}<a class="btn btn-block" style="margin-top:12px" href="{% url 'archivo' 'cita' cita_consular.pk %}?descargar=1">{% icon 'download' 18 %}Descargar confirmación</a>{% endif %}
+        {% else %}<p class="muted small">Aún no hay una cita consular registrada.</p>{% endif %}
+      </div></div>
+      {% endif %}
+      <div class="card" id="pagos"><div class="card-body">
+        <h3 class="h-card">Pagos</h3>
+        {% include 'core/partials/pagos_resumen.html' %}
+        {% if abonos %}<ul class="rev-list" style="margin-top:12px">{% for a in abonos %}<li>{% icon 'check' 14 %} ${{ a.monto|floatformat:"2g" }} · {{ a.fecha|date:"j M Y" }}</li>{% endfor %}</ul>{% endif %}
+        {% for c in comprobantes %}{% if c.estado != 'confirmado' %}<p class="small" style="margin-top:8px">{% include 'core/partials/badge.html' with tono=c.tono texto=c.get_estado_display %} ${{ c.monto|floatformat:"2g" }} · N.º {{ c.numero }}{% if c.motivo_rechazo %}<br><span class="muted">Motivo: {{ c.motivo_rechazo }}</span>{% endif %}</p>{% endif %}{% endfor %}
+        {% if e.estado != 'cancelado' %}<a class="btn btn-block" style="margin-top:14px" href="{% url 'pagos' %}?servicio={{ e.pk }}">{% icon 'upload' 18 %}Enviar comprobante</a>{% endif %}
+      </div></div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

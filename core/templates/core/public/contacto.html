@@ -1,0 +1,23 @@
+{% extends 'core/public/base.html' %}
+{% load ui %}
+{% block title %}Contacto{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='mail' hero_title='Contacto' hero_sub='Escríbenos y un asesor te responderá en horario de atención.' %}
+<div class="container lift">
+  <div class="detail-grid">
+    <div>{% include 'core/public/_consulta_form.html' %}</div>
+    <aside class="stack">
+      <div class="card"><div class="card-body">
+        <h2 class="h-card">Datos de contacto</h2>
+        <ul class="contact-list">
+          <li>{% icon 'pin' 18 %}<span><strong>{{ sitio.direccion }}</strong><br>{{ sitio.ciudad }}</span></li>
+          <li>{% icon 'phone-call' 18 %}<a href="tel:{{ sitio.telefono|cut:' ' }}">{{ sitio.telefono }}</a></li>
+          <li>{% icon 'mail' 18 %}<a href="mailto:{{ sitio.email }}">{{ sitio.email }}</a></li>
+          <li>{% icon 'clock' 18 %}<span>{{ sitio.horario }}</span></li>
+        </ul>
+        {% if sitio.whatsapp %}<a class="btn btn-accent btn-block" style="margin-top:16px" href="{{ sitio.whatsapp_url }}" target="_blank" rel="noopener">{% icon 'whatsapp' 18 %}Escribir por WhatsApp</a>{% endif %}
+      </div></div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

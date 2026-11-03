@@ -1,0 +1,1 @@
+{% load ui %}{% if form.non_field_errors %}<div class="alert alert--error" role="alert" style="margin-bottom:16px">{% icon 'alert' 20 %}<div>{{ form.non_field_errors|join:" " }}</div></div>{% endif %}

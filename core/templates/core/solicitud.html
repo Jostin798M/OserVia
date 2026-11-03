@@ -1,0 +1,65 @@
+{% extends 'core/base.html' %}
+{% load ui %}
+{% block title %}{{ s.codigo }}{% endblock %}
+{% block content %}
+{% url 'mis_solicitudes' as back %}
+{% include 'core/partials/hero.html' with hero_icon='send' hero_title=s.titulo hero_sub='Solicitud '|add:s.codigo back_url=back back_label='Mis cotizaciones' %}
+<div class="container lift">
+  <div class="detail-grid">
+    <div class="stack">
+      <section class="card" aria-labelledby="t-cot"><div class="card-body">
+        <div class="detail-head"><h2 id="t-cot" class="h-card" style="margin:0">Cotizaciones de tu asesor</h2>{% include 'core/partials/badge.html' with tono=s.tono texto=s.get_estado_display %}</div>
+        {% for c in cotizaciones %}
+        <article class="quote{% if c.estado == 'aceptada' %} quote--ok{% endif %}">
+          <div class="quote-head">
+            <div><span class="detail-code">{{ c.codigo }}</span><div class="price"><strong>${{ c.precio_total|floatformat:"2g" }}</strong><span>precio total</span></div></div>
+            {% if c.vencida %}{% include 'core/partials/badge.html' with tono='neutral' texto='Vencida' %}{% else %}{% include 'core/partials/badge.html' with tono=c.tono texto=c.get_estado_display %}{% endif %}
+          </div>
+          <ul class="checklist">{% for x in c.lista_servicios %}<li>{% icon 'check' 16 %}{{ x }}</li>{% endfor %}</ul>
+          <dl class="dl" style="margin-top:14px">
+            <div><dt>Válida hasta</dt><dd>{{ c.vigencia|date:"j M Y" }}</dd></div>
+            <div><dt>Seguro de viaje</dt><dd>{{ c.incluye_seguro|yesno:"Incluido,No incluido" }}</dd></div>
+            {% if c.respondida_en %}<div><dt>Respondida</dt><dd>{{ c.respondida_en|date:"j M Y, H:i" }}</dd></div>{% endif %}
+            {% if c.estado == 'aceptada' and not c.incluye_seguro %}<div><dt>¿Contratar seguro?</dt><dd>{{ c.contratar_seguro|yesno:"Sí,No" }}</dd></div>{% endif %}
+          </dl>
+          <p class="promo-cond" style="margin-top:12px"><span>Condiciones de contratación</span>{{ c.condiciones|linebreaksbr }}</p>
+          {% if c.estado == 'pendiente' and not c.vencida %}
+          <div class="quote-actions">
+            <form method="post" novalidate>
+              {% csrf_token %}<input type="hidden" name="cotizacion" value="{{ c.pk }}"><input type="hidden" name="accion" value="aceptar">
+              {% if c.incluye_seguro %}<p class="note" style="margin-bottom:10px">{% icon 'shield' 16 %}<span>Esta cotización <strong>incluye seguro de viaje</strong>.</span></p>
+              {% else %}{% include 'core/partials/radios.html' with field=c.form_aceptar.contratar_seguro %}{% endif %}
+              <button type="submit" class="btn btn-accent" style="margin-top:12px">{% icon 'check' 18 %}Aceptar cotización</button>
+            </form>
+            <form method="post" onsubmit="return confirm('¿Rechazar esta cotización?')">
+              {% csrf_token %}<input type="hidden" name="cotizacion" value="{{ c.pk }}"><input type="hidden" name="accion" value="rechazar">
+              <button type="submit" class="btn btn-danger">{% icon 'x' 18 %}Rechazar</button>
+            </form>
+          </div>
+          {% endif %}
+        </article>
+        {% empty %}
+        <div class="empty" style="padding:24px 0">{% include 'core/partials/empty_art.html' %}<h3>Tu asesor está preparando la cotización</h3><p>Te avisaremos aquí cuando esté lista.</p></div>
+        {% endfor %}
+      </div></section>
+    </div>
+    <aside class="stack">
+      <div class="card"><div class="card-body">
+        <h3 class="h-card">Tu solicitud</h3>
+        <dl class="dl dl--1">
+          <div><dt>Servicio</dt><dd>{{ s.get_tipo_display }}{% if s.trayecto %} · {{ s.get_trayecto_display }}{% endif %}</dd></div>
+          <div><dt>Oferta</dt><dd>{{ s.oferta_texto }}{% if s.promocion_nombre %}<br><span class="muted small">Promoción: {{ s.promocion_nombre }}</span>{% endif %}</dd></div>
+          {% if s.origen %}<div><dt>Origen</dt><dd>{{ s.origen }}</dd></div>{% endif %}
+          <div><dt>Destino</dt><dd>{{ s.destino }}</dd></div>
+          <div><dt>Fechas</dt><dd>{{ s.fecha_salida|date:"j M Y" }}{% if s.fecha_regreso %} – {{ s.fecha_regreso|date:"j M Y" }}{% endif %}</dd></div>
+          <div><dt>Pasajeros</dt><dd>{{ s.pasajeros }}</dd></div>
+          {% if s.clase %}<div><dt>Clase</dt><dd>{{ s.get_clase_display }}</dd></div>{% endif %}
+          <div><dt>Seguro de viaje</dt><dd>{{ s.seguro|yesno:"Sí, deseo incluirlo,No" }}</dd></div>
+          <div><dt>Solicitante</dt><dd>{{ s.nombre }} · {{ s.cedula }}</dd></div>
+          <div><dt>Enviada</dt><dd>{{ s.creado|date:"j M Y, H:i" }}</dd></div>
+        </dl>
+      </div></div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

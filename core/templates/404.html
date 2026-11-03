@@ -1,0 +1,27 @@
+{% extends 'core/public/base.html' %}
+{% load ui %}
+{% block title %}Página no encontrada{% endblock %}
+{% block content %}
+<section class="notfound">
+  {% include 'core/partials/hero_art.html' %}
+  <div class="container notfound-inner fade-up">
+    <svg class="notfound-art" viewBox="0 0 320 180" aria-hidden="true">
+      <text x="160" y="128" text-anchor="middle" class="nf-num">4<tspan class="nf-zero">0</tspan>4</text>
+      <path d="M40 150 C 110 60, 210 40, 290 52" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="2 9"/>
+      <g fill="currentColor" transform="translate(276 36) rotate(20) scale(1.5)"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></g>
+    </svg>
+    <p class="eyebrow">{% icon 'pin' 14 %}Error 404</p>
+    <h1>Este destino no está en nuestro mapa</h1>
+    <p class="notfound-text">La página que buscas no existe, cambió de dirección o no tienes permiso para verla.</p>
+    <div class="hero-actions" style="justify-content:center">
+      <a class="btn btn-lg btn-light" href="{% url 'inicio' %}">{% icon 'home' 18 %}Ir al inicio</a>
+      {% if user.is_authenticated %}<a class="btn btn-lg btn-ghost-light" href="{% if es_personal %}{% url 'panel_inicio' %}{% else %}{% url 'dashboard' %}{% endif %}">{% icon 'user' 18 %}Mi cuenta</a>{% endif %}
+      <a class="btn btn-lg btn-ghost-light" href="{% url 'contacto' %}">{% icon 'message' 18 %}Contáctanos</a>
+    </div>
+    <nav class="notfound-links" aria-label="Sugerencias">
+      <span>Quizás buscabas:</span>
+      <a href="{% url 'vuelos' %}">Vuelos</a><a href="{% url 'paquetes' %}">Paquetes</a><a href="{% url 'visas' %}">Visas</a><a href="{% url 'preguntas' %}">Preguntas frecuentes</a>
+    </nav>
+  </div>
+</section>
+{% endblock %}

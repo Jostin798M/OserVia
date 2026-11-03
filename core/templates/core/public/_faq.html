@@ -1,0 +1,9 @@
+{% load ui %}<div class="faq">
+  {% for p in preguntas %}
+  <details class="faq-item"{% if forloop.first and abrir_primera %} open{% endif %}>
+    <summary>{{ p.pregunta }}{% icon 'chevron-right' 18 'faq-chev' %}</summary>
+    <div class="faq-body">{{ p.respuesta|linebreaks }}</div>
+  </details>
+  {% empty %}<p class="muted">Aún no hay preguntas publicadas.</p>
+  {% endfor %}
+</div>

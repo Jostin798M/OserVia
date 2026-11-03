@@ -1,0 +1,13 @@
+{% load ui %}<div class="file-field">
+  {% if widget.is_initial %}
+  <div class="file-current">
+    <span class="file-current-icon">{% icon 'file' 18 %}</span>
+    <span class="file-current-text"><span class="file-current-label">Archivo actual</span><span class="file-current-name">Archivo {{ widget.value|info_archivo }}</span></span>
+    {% if not widget.required %}
+    <label class="file-current-clear" for="{{ widget.checkbox_id }}"><input type="checkbox" name="{{ widget.checkbox_name }}" id="{{ widget.checkbox_id }}"{% if widget.attrs.disabled %} disabled{% endif %}{% if widget.attrs.checked %} checked{% endif %}>Quitar</label>
+    {% endif %}
+  </div>
+  <span class="file-current-label" style="margin-top:8px">Reemplazar por otro archivo</span>
+  {% endif %}
+  <input type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>
+</div>

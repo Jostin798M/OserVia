@@ -1,0 +1,35 @@
+{% extends 'core/panel/base.html' %}
+{% load ui %}
+{% block title %}Pagos{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='dollar' hero_title='Pagos' hero_sub='Comprobantes enviados por los usuarios y saldos de los servicios.' variante='panel' %}
+<div class="container lift">
+  <div class="detail-grid">
+    <div class="card"><div class="card-body">
+      <nav class="chips" style="margin-bottom:16px" aria-label="Estado">
+        <a class="chip" href="?estado=pendiente" {% if estado == 'pendiente' %}aria-current="true"{% endif %}>Pendientes de revisión</a>
+        <a class="chip" href="?estado=confirmado" {% if estado == 'confirmado' %}aria-current="true"{% endif %}>Confirmados</a>
+        <a class="chip" href="?estado=rechazado" {% if estado == 'rechazado' %}aria-current="true"{% endif %}>Rechazados</a>
+        <a class="chip" href="?estado=todos" {% if estado == 'todos' %}aria-current="true"{% endif %}>Todos</a>
+      </nav>
+      {% if pagina.object_list %}
+      <div class="table-wrap"><table class="table table--stack">
+        <thead><tr><th>Expediente</th><th>Fecha</th><th>N.º</th><th>Medio</th><th class="num">Monto</th><th>Estado</th></tr></thead>
+        <tbody>{% for c in pagina %}<tr>
+          <td data-label="Expediente"><a href="{{ c.expediente.get_panel_url }}#pagos">{{ c.expediente.codigo }}</a><span class="muted small" style="display:block">{{ c.expediente.nombre }}</span></td>
+          <td data-label="Fecha">{{ c.fecha_pago|date:"j M Y" }}</td><td data-label="N.º">{{ c.numero }}</td><td data-label="Medio">{{ c.get_medio_display }}</td><td data-label="Monto" class="num">${{ c.monto|floatformat:"2g" }}</td>
+          <td data-label="Estado">{% include 'core/partials/badge.html' with tono=c.tono texto=c.get_estado_display %}</td>
+        </tr>{% endfor %}</tbody>
+      </table></div>
+      {% include 'core/partials/paginacion.html' %}
+      <p class="hint" style="margin-top:10px">Para confirmar o rechazar un comprobante, ábrelo desde su expediente.</p>
+      {% else %}<div class="empty">{% include 'core/partials/empty_art.html' %}<h3>Sin comprobantes</h3><p>No hay comprobantes en este filtro.</p></div>{% endif %}
+    </div></div>
+    <aside class="card"><div class="card-body">
+      <h3 class="h-card">Saldos de servicios en curso</h3>
+      {% for e in saldos %}<a class="row-link" href="{{ e.get_panel_url }}#pagos"><span><strong>{{ e.codigo }}</strong><span class="muted small" style="display:block">{{ e.nombre }} · total ${{ e.precio_total|floatformat:"2g" }}</span></span><span class="{% if e.saldo > 0 %}due{% else %}ok{% endif %}"><strong>${{ e.saldo|floatformat:"2g" }}</strong></span></a>
+      {% empty %}<p class="muted small">Ningún expediente en curso tiene precio registrado.</p>{% endfor %}
+    </div></aside>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'core/panel/base.html' %}
+{% load ui %}
+{% block title %}Contenido público{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='globe' hero_title='Contenido público' hero_sub='Lo que ven los visitantes sin iniciar sesión.' variante='panel' %}
+<div class="container lift">
+  <div class="cards-grid">
+    <a class="feature feature--link" href="{% url 'panel_sitio' %}"><span class="feature-icon">{% icon 'info' 22 %}</span><h3>Información de la agencia</h3><p>Nosotros (historia, misión, visión), dirección, teléfono, correo, horario, WhatsApp, redes y video tutorial.</p><span class="muted small">Actualizado {{ sitio_obj.actualizado|date:"j M Y" }}</span></a>
+    {% for s in secciones %}
+    <a class="feature feature--link" href="{% url 'panel_contenido_lista' s.clave %}"><span class="feature-icon">{% icon 'list' 22 %}</span><h3>{{ s.titulo }}</h3><p>{{ s.publicados }} publicado{{ s.publicados|pluralize }} de {{ s.total }}.</p></a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

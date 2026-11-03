@@ -1,0 +1,10 @@
+{% load ui %}<section class="hero hero--compact{% if variante %} hero--{{ variante }}{% endif %}">
+  {% include 'core/partials/hero_art.html' %}
+  <div class="container{% if estrecho %} container--narrow{% endif %}">
+    {% if back_url %}<a class="back-link" href="{{ back_url }}">{% icon 'arrow-left' 16 %}{{ back_label }}</a>{% endif %}
+    <div class="hero-row">
+      <span class="hero-icon">{% icon hero_icon 26 %}</span>
+      <div style="min-width:0"><h1 class="h-page">{{ hero_title }}</h1>{% if hero_sub %}<p>{{ hero_sub }}</p>{% endif %}</div>
+    </div>
+  </div>
+</section>

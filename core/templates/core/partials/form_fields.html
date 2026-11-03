@@ -1,0 +1,8 @@
+{# Renderiza todos los campos de un formulario eligiendo el control adecuado. #}
+{% for field in form.visible_fields %}
+  {% if field.widget_type == 'radioselect' %}{% include 'core/partials/radios.html' with field=field cls='span-all' %}
+  {% elif field.widget_type == 'checkbox' %}{% include 'core/partials/check.html' with field=field %}
+  {% elif field.widget_type == 'textarea' %}{% include 'core/partials/field.html' with field=field cls='span-all' %}
+  {% else %}{% include 'core/partials/field.html' with field=field %}{% endif %}
+{% endfor %}
+{% for field in form.hidden_fields %}{{ field }}{% endfor %}

@@ -1,0 +1,88 @@
+{% extends 'core/base.html' %}
+{% load ui %}
+{% block title %}Solicitar cotización{% endblock %}
+{% block content %}
+{% url 'mis_solicitudes' as back %}
+{% if oferta %}{% include 'core/partials/hero.html' with hero_icon='takeoff' hero_title='Solicitar esta oferta' hero_sub='Completa tus datos y tu asesor confirmará el precio final.' estrecho=True back_url=oferta.get_absolute_url back_label='Volver a la oferta' %}{% else %}{% include 'core/partials/hero.html' with hero_icon='takeoff' hero_title='Solicitar cotización' hero_sub='Vuelos y paquetes turísticos. Un asesor te enviará la propuesta.' estrecho=True back_url=back back_label='Mis cotizaciones' %}{% endif %}
+
+<div class="container container--narrow lift">
+  <form method="post" class="card card-elevated" novalidate data-submit-once>
+    {% csrf_token %}
+    {% if oferta %}<input type="hidden" name="oferta" value="{{ oferta.codigo }}">{% endif %}
+    <div class="card-body">
+      {% if oferta %}
+      <div class="offer-summary" data-estimador data-precio="{{ oferta.precio_persona|stringformat:'s' }}" data-pasajeros-id="{{ form.pasajeros.id_for_label }}">
+        <div class="offer-summary-main">
+          <span class="offer-icon">{% if oferta.tipo == 'vuelo' %}{% icon 'plane' 20 %}{% else %}{% icon 'suitcase' 20 %}{% endif %}</span>
+          <div><span class="detail-code">{{ oferta.codigo }}{% if oferta.promocion_vigente %} · {{ oferta.promocion_vigente.titulo }}{% endif %}</span><strong>{{ oferta.titulo }}</strong></div>
+        </div>
+        <div class="offer-summary-prices">
+          <div><span>Por persona</span><strong>${{ oferta.precio_persona|floatformat:"2g" }}</strong></div>
+          <div><span>Total estimado</span><strong data-total>${{ oferta.precio_persona|floatformat:"2g" }}</strong></div>
+        </div>
+        <p class="hint">Tu asesor confirmará cupos y fechas y te enviará el precio final para que lo aceptes.</p>
+      </div>
+      {% else %}
+      <div class="alert" style="margin-bottom:24px">{% icon 'star' 20 %}
+        <div><strong>Sin oferta seleccionada.</strong> Puedes elegir una en <a href="{% url 'vuelos' %}">Vuelos</a> o <a href="{% url 'paquetes' %}">Paquetes</a>, o describir tu viaje aquí.</div>
+      </div>
+      {% endif %}
+      {% include 'core/partials/form_errors.html' %}
+
+      <div class="form-section">
+        <div class="form-section-title"><span class="num">1</span>Tu viaje</div>
+        <div class="segmented" role="radiogroup" aria-label="Tipo de servicio" style="margin-bottom:18px">
+          {% for radio in form.tipo %}<label>{{ radio.tag }}<span>{% if radio.data.value == 'paquete' %}{% icon 'suitcase' 18 %}{% else %}{% icon 'plane' 18 %}{% endif %}{{ radio.choice_label }}</span></label>{% endfor %}
+        </div>
+        <div data-show-when="tipo=vuelo">{% include 'core/partials/radios.html' with field=form.trayecto label='Tipo de viaje' %}</div>
+
+        <div class="route" style="margin-top:16px">
+          <div data-show-when="tipo=vuelo">{% include 'core/partials/field.html' with field=form.origen icon='pin' %}</div>
+          <button type="button" class="route-swap" data-show-when="tipo=vuelo" data-swap="{{ form.origen.id_for_label }},{{ form.destino.id_for_label }}" aria-label="Intercambiar origen y destino">{% icon 'swap' 18 %}</button>
+          {% include 'core/partials/field.html' with field=form.destino icon='globe' %}
+        </div>
+        <datalist id="ciudades">
+          <option value="Guayaquil (GYE)"><option value="Quito (UIO)"><option value="Cuenca (CUE)"><option value="Madrid (MAD)">
+          <option value="Miami (MIA)"><option value="Nueva York (JFK)"><option value="Ciudad de Panamá (PTY)"><option value="Bogotá (BOG)">
+          <option value="Cancún (CUN)"><option value="Lima (LIM)"><option value="Punta Cana (PUJ)"><option value="Toronto (YYZ)">
+        </datalist>
+
+        <div class="grid grid-3" style="margin-top:16px">
+          {% include 'core/partials/field.html' with field=form.fecha_salida label='Salida' %}
+          <div data-show-when="tipo=paquete|trayecto=ida_vuelta">{% include 'core/partials/field.html' with field=form.fecha_regreso label='Regreso' %}</div>
+          <div class="field">
+            <label class="label" for="{{ form.pasajeros.id_for_label }}">Pasajeros <span class="req-mark" aria-hidden="true">*</span></label>
+            <div class="stepper" data-stepper>
+              <button type="button" data-step="-1" aria-label="Quitar pasajero">{% icon 'minus' 18 %}</button>
+              {{ form.pasajeros }}
+              <button type="button" data-step="1" aria-label="Agregar pasajero">{% icon 'plus' 18 %}</button>
+            </div>
+            {% for e in form.pasajeros.errors %}<p class="error">{% icon 'alert' 14 %}{{ e }}</p>{% endfor %}
+          </div>
+        </div>
+        <div class="grid grid-2" style="margin-top:16px">
+          <div data-show-when="tipo=vuelo">{% include 'core/partials/field.html' with field=form.clase icon='star' %}</div>
+          {% include 'core/partials/radios.html' with field=form.seguro %}
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title"><span class="num">2</span>Datos del solicitante</div>
+        <div class="grid grid-2">
+          {% include 'core/partials/field.html' with field=form.nombre icon='user' %}
+          {% include 'core/partials/field.html' with field=form.cedula icon='id' %}
+          {% include 'core/partials/field.html' with field=form.email icon='mail' %}
+          {% include 'core/partials/field.html' with field=form.telefono icon='phone' %}
+          {% include 'core/partials/field.html' with field=form.comentarios cls='span-all' label='Comentarios (opcional)' %}
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <p class="note">{% icon 'shield' 16 %}<span>Los campos con <span class="req-mark">*</span> son obligatorios. La solicitud queda vinculada a tu cuenta.</span></p>
+        <a class="btn btn-ghost" href="{% url 'mis_solicitudes' %}">Cancelar</a>
+        <button type="submit" class="btn btn-primary btn-lg" data-loading="Enviando…"><span data-label>Enviar solicitud</span>{% icon 'send' 18 %}</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

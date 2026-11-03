@@ -1,0 +1,52 @@
+{% extends 'core/base.html' %}
+{% load ui %}
+{% block title %}Pagos{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='dollar' hero_title='Pagos y saldos' hero_sub='Consulta cuánto has pagado y envía tus comprobantes para revisión.' %}
+<div class="container lift">
+  <div class="detail-grid">
+    <div class="stack">
+      {% for e in expedientes %}
+      <section class="card"><div class="card-body">
+        <div class="detail-head"><div><span class="detail-code">{{ e.codigo }}</span><h2 class="h-card" style="margin:0">{{ e.titulo }}</h2></div><a class="btn btn-sm btn-ghost" href="{{ e.get_absolute_url }}">Ver expediente</a></div>
+        {% include 'core/partials/pagos_resumen.html' %}
+        {% if e.comprobantes.all %}
+        <div class="table-wrap" style="margin-top:14px"><table class="table table--stack">
+          <thead><tr><th>Fecha</th><th>N.º comprobante</th><th>Medio</th><th class="num">Monto</th><th>Estado</th></tr></thead>
+          <tbody>{% for c in e.comprobantes.all %}<tr>
+            <td data-label="Fecha">{{ c.fecha_pago|date:"j M Y" }}</td><td data-label="N.º comprobante">{{ c.numero }}</td><td data-label="Medio">{{ c.get_medio_display }}</td><td data-label="Monto" class="num">${{ c.monto|floatformat:"2g" }}</td>
+            <td data-label="Estado">{% include 'core/partials/badge.html' with tono=c.tono texto=c.get_estado_display %}{% if c.motivo_rechazo %}<div class="small muted" style="margin-top:4px">Motivo: {{ c.motivo_rechazo }}</div>{% endif %}</td>
+          </tr>{% endfor %}</tbody>
+        </table></div>
+        {% else %}<p class="muted small" style="margin-top:12px">Aún no has enviado comprobantes para este servicio.</p>{% endif %}
+      </div></section>
+      {% empty %}
+      <div class="card"><div class="empty">{% include 'core/partials/empty_art.html' %}<h3>No tienes servicios contratados</h3><p>Cuando tu asesor registre un servicio, podrás ver aquí su precio, tus abonos y el saldo pendiente.</p></div></div>
+      {% endfor %}
+    </div>
+    {% if expedientes %}
+    <aside>
+      <form method="post" enctype="multipart/form-data" class="card card-elevated sticky-side" novalidate data-submit-once>
+        {% csrf_token %}
+        <div class="card-body">
+          <div class="card-title"><span class="ct-icon">{% icon 'upload' 20 %}</span><div><h2 style="font-size:1.1rem">Enviar comprobante</h2><p>Transferencia o depósito bancario.</p></div></div>
+          {% include 'core/partials/form_errors.html' %}
+          <div class="stack">
+            {% include 'core/partials/field.html' with field=form.expediente %}
+            <div class="grid grid-2">
+              {% include 'core/partials/field.html' with field=form.monto icon='dollar' %}
+              {% include 'core/partials/field.html' with field=form.fecha_pago %}
+            </div>
+            {% include 'core/partials/field.html' with field=form.numero %}
+            {% include 'core/partials/field.html' with field=form.medio icon='dollar' %}
+            {% include 'core/partials/field.html' with field=form.archivo %}
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" style="margin-top:18px" data-loading="Enviando…"><span data-label>Enviar para revisión</span>{% icon 'send' 18 %}</button>
+          <p class="hint" style="margin-top:10px">El monto se descuenta del saldo solo cuando la agencia confirma el pago.</p>
+        </div>
+      </form>
+    </aside>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

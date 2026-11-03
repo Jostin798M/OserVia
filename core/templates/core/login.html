@@ -1,0 +1,37 @@
+{% extends 'core/auth_base.html' %}
+{% load ui %}
+{% block title %}Iniciar sesión{% endblock %}
+{% block content %}
+<h1>Bienvenido de nuevo</h1>
+<p class="lead">Ingresa a tu portal de viajes y trámites.</p>
+
+{% if form.non_field_errors %}
+<div class="alert alert--error" role="alert" style="margin-bottom:20px">{% icon 'alert' 20 %}<div>{{ form.non_field_errors|join:" " }}</div></div>
+{% endif %}
+
+<form method="post" class="stack" novalidate data-submit-once>
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next }}">
+  {% include 'core/partials/field.html' with field=form.email icon='mail' %}
+  <div class="field">
+    <label class="label" for="{{ form.password.id_for_label }}">Contraseña <span class="req-mark" aria-hidden="true">*</span></label>
+    <div class="control has-icon">
+      {% icon 'lock' 18 'control-icon' %}
+      {{ form.password }}
+      <span class="control-end">
+        <button type="button" class="icon-btn" data-reveal="{{ form.password.id_for_label }}" aria-label="Mostrar contraseña" aria-pressed="false">{% icon 'eye' 18 'i-eye' %}<span class="i-eye-off" style="display:none">{% icon 'eye-off' 18 %}</span></button>
+      </span>
+    </div>
+    {% for e in form.password.errors %}<p class="error">{% icon 'alert' 14 %}{{ e }}</p>{% endfor %}
+  </div>
+  <div class="auth-row">
+    <label class="check">{{ form.recordar }} {{ form.recordar.label }}</label>
+    <a class="small" href="{% url 'recuperar' %}">¿Olvidaste tu contraseña?</a>
+  </div>
+  <button type="submit" class="btn btn-primary btn-lg btn-block" data-loading="Ingresando…"><span data-label>Iniciar sesión</span>{% icon 'arrow-right' 18 %}</button>
+</form>
+
+<p class="legal-note">{% icon 'shield' 14 %}<span>Al iniciar sesión aceptas los <a href="{% url 'terminos' %}" target="_blank" rel="noopener">Términos y condiciones</a> y la <a href="{% url 'privacidad' %}" target="_blank" rel="noopener">Política de privacidad</a> de {{ sitio.nombre }}.</span></p>
+<p class="auth-alt">¿Aún no tienes cuenta? <a href="{% url 'registro' %}">Crear una cuenta</a></p>
+<p class="auth-alt" style="margin-top:8px"><a href="{% url 'inicio' %}">{% icon 'arrow-left' 14 %} Volver al sitio</a></p>
+{% endblock %}

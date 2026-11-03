@@ -1,0 +1,41 @@
+{% extends 'core/public/base.html' %}
+{% load ui %}
+{% block title %}Asesoría de visas{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='passport' hero_title='Asesoría de visas' hero_sub='Te acompañamos desde la recolección de documentos hasta tu presentación en el consulado.' variante='visa' %}
+<div class="container lift">
+  <div class="detail-grid">
+    <div class="stack">
+      <div class="card"><div class="card-body">
+        <h2 class="h-card">¿Cómo funciona?</h2>
+        <ol class="steps">
+          <li><strong>Entrevista informativa gratuita</strong><span>Unos 30 minutos para revisar tu caso, explicarte el servicio, los honorarios y las tasas.</span></li>
+          <li><strong>Recolección de documentos</strong><span>Abrimos tu expediente y te indicamos qué documentos entregar desde tu cuenta.</span></li>
+          <li><strong>Revisión de documentos</strong><span>Tu asesor revisa cada archivo y te indica si necesita corrección.</span></li>
+          <li><strong>Preparación para la cita consular</strong><span>Con la documentación completa, registramos tu cita y te preparamos para ella.</span></li>
+          <li><strong>Presentación en el consulado</strong><span>La asesoría concluye cuando te presentas. La decisión es de la entidad consular.</span></li>
+        </ol>
+        <div class="alert" style="margin-top:18px">{% icon 'info' 20 %}<div>La asesoría no garantiza la aprobación de la visa: la resolución corresponde únicamente al consulado.</div></div>
+      </div></div>
+      <div class="card"><div class="card-body">
+        <h2 class="h-card">Requisitos habituales por destino</h2>
+        <p class="muted small" style="margin-bottom:14px">Lista orientativa. Tu asesor confirmará los requisitos exactos para tu caso.</p>
+        <div class="faq">
+          {% for pais, reqs in requisitos.items %}
+          <details class="faq-item"{% if forloop.first %} open{% endif %}><summary>{{ pais }}{% icon 'chevron-right' 18 'faq-chev' %}</summary>
+            <div class="faq-body"><ul class="checklist">{% for r in reqs %}<li>{% icon 'check' 16 %}{{ r }}</li>{% endfor %}</ul></div></details>
+          {% endfor %}
+        </div>
+      </div></div>
+    </div>
+    <aside class="stack sticky-side">
+      <div class="card card-elevated"><div class="card-body">
+        <h2 class="h-card">Agenda tu entrevista</h2>
+        <p class="muted small" style="margin-bottom:16px">Escríbenos y un asesor te contactará para coordinarla.</p>
+        <a class="btn btn-accent btn-block" href="{% url 'contacto' %}">{% icon 'message' 18 %}Solicitar información</a>
+        {% if sitio.whatsapp %}<a class="btn btn-block" style="margin-top:10px" href="{{ sitio.whatsapp_url }}" target="_blank" rel="noopener">{% icon 'whatsapp' 18 %}WhatsApp</a>{% endif %}
+      </div></div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

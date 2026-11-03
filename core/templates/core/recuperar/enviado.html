@@ -1,0 +1,9 @@
+{% extends 'core/auth_base.html' %}
+{% load ui %}
+{% block title %}Revisa tu correo{% endblock %}
+{% block content %}
+<span class="feature-icon feature-icon--accent">{% icon 'mail' 22 %}</span>
+<h1 style="margin-top:16px">Revisa tu correo</h1>
+<p class="lead">Si el correo pertenece a una cuenta, recibirás un enlace para crear una nueva contraseña. El enlace vence en 24 horas y solo puede usarse una vez.</p>
+<a class="btn btn-block" href="{% url 'login' %}">Volver a iniciar sesión</a>
+{% endblock %}

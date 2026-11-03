@@ -1,0 +1,42 @@
+{% extends 'core/panel/base.html' %}
+{% load ui %}
+{% block title %}Consultas{% endblock %}
+{% block content %}
+{% include 'core/partials/hero.html' with hero_icon='message' hero_title='Solicitudes de información' hero_sub='Recibidas desde el formulario público.' variante='panel' %}
+<div class="container lift">
+  <div class="card"><div class="card-body">
+    <nav class="chips" aria-label="Estado" style="margin-bottom:16px">
+      <a class="chip" href="?estado=abiertas" {% if estado == 'abiertas' %}aria-current="true"{% endif %}>Abiertas</a>
+      <a class="chip" href="?estado=nueva" {% if estado == 'nueva' %}aria-current="true"{% endif %}>Nuevas</a>
+      <a class="chip" href="?estado=asignada" {% if estado == 'asignada' %}aria-current="true"{% endif %}>Asignadas</a>
+      <a class="chip" href="?estado=atendida" {% if estado == 'atendida' %}aria-current="true"{% endif %}>Atendidas</a>
+      <a class="chip" href="?estado=todas" {% if estado == 'todas' %}aria-current="true"{% endif %}>Todas</a>
+    </nav>
+    {% for c in pagina %}
+    <article class="consulta">
+      <div class="consulta-head">
+        <div><strong>{{ c.nombre }}</strong> <a class="small" href="tel:{{ c.telefono|cut:' ' }}">{{ c.telefono }}</a>
+          <span class="muted small" style="display:block">{{ c.codigo }} · recibida el {{ c.creado|date:"j M Y, H:i" }}</span></div>
+        <span class="badge badge--{% if c.estado == 'nueva' %}info{% elif c.estado == 'asignada' %}warn{% else %}success{% endif %}">{{ c.get_estado_display }}</span>
+      </div>
+      <p class="consulta-motivo">{{ c.motivo }}</p>
+      <div class="consulta-foot">
+        <span class="muted small">{% if c.asesor %}Asesor: <strong>{{ c.asesor.get_full_name|default:c.asesor.email }}</strong> · asignada por {{ c.asignado_por.get_full_name|default:c.asignado_por.email }} el {{ c.asignado_en|date:"j M, H:i" }}{% else %}Sin asignar{% endif %}</span>
+        <div class="inline-actions">
+          {% if es_admin %}
+          <form method="post" class="inline-form">{% csrf_token %}<input type="hidden" name="consulta" value="{{ c.pk }}"><input type="hidden" name="accion" value="asignar"><input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <label class="sr-only" for="as-{{ c.pk }}">Asesor</label>
+            <select id="as-{{ c.pk }}" name="asesor" class="select select--sm" required>{% for o in asignar_form.fields.asesor.queryset %}<option value="{{ o.pk }}" {% if o.pk == c.asesor_id %}selected{% endif %}>{{ o.get_full_name|default:o.email }}</option>{% endfor %}</select>
+            <button class="btn btn-sm" type="submit">{% if c.asesor %}Reasignar{% else %}Asignar{% endif %}</button>
+          </form>
+          {% endif %}
+          {% if c.estado != 'atendida' %}<form method="post">{% csrf_token %}<input type="hidden" name="consulta" value="{{ c.pk }}"><input type="hidden" name="accion" value="atendida"><input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn btn-sm btn-accent" type="submit">{% icon 'check' 16 %}Atendida</button></form>{% endif %}
+        </div>
+      </div>
+    </article>
+    {% empty %}<div class="empty">{% include 'core/partials/empty_art.html' %}<h3>Sin consultas</h3><p>No hay consultas en este filtro.</p></div>
+    {% endfor %}
+    {% include 'core/partials/paginacion.html' %}
+  </div></div>
+</div>
+{% endblock %}

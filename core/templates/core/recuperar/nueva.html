@@ -1,0 +1,21 @@
+{% extends 'core/auth_base.html' %}
+{% load ui %}
+{% block title %}Nueva contraseña{% endblock %}
+{% block content %}
+{% if validlink %}
+<h1>Crea una nueva contraseña</h1>
+<p class="lead">Elige una contraseña que no uses en otros sitios.</p>
+<form method="post" class="stack" novalidate data-submit-once>
+  {% csrf_token %}
+  {% include 'core/partials/form_errors.html' %}
+  {% include 'core/partials/field.html' with field=form.new_password1 icon='lock' label='Nueva contraseña' %}
+  {% include 'core/partials/field.html' with field=form.new_password2 icon='lock' label='Confirmar contraseña' %}
+  <button type="submit" class="btn btn-primary btn-lg btn-block">Guardar contraseña</button>
+</form>
+{% else %}
+<span class="feature-icon" style="background:var(--danger-soft);color:var(--danger)">{% icon 'alert' 22 %}</span>
+<h1 style="margin-top:16px">Enlace no válido</h1>
+<p class="lead">Este enlace ya se usó o venció. Solicita uno nuevo.</p>
+<a class="btn btn-primary btn-block" href="{% url 'recuperar' %}">Solicitar nuevo enlace</a>
+{% endif %}
+{% endblock %}
