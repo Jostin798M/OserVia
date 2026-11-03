@@ -30,6 +30,11 @@ DEBUG = not PRODUCCION
 
 ALLOWED_HOSTS = [h for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h] or ['127.0.0.1', 'localhost']
 
+# Desarrollo: permitir túneles de ngrok (dominio y formularios por HTTPS).
+if not PRODUCCION:
+    ALLOWED_HOSTS += ['.ngrok-free.dev', '.ngrok-free.app', '.ngrok.app', '.ngrok.io']
+    CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.dev', 'https://*.ngrok-free.app', 'https://*.ngrok.app', 'https://*.ngrok.io']
+
 
 # Application definition
 
