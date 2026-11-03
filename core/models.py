@@ -828,6 +828,11 @@ class Comprobante(models.Model):
     def tono(self):
         return {'pendiente': 'warn', 'confirmado': 'success', 'rechazado': 'danger'}[self.estado]
 
+    def save(self, *args, **kwargs):
+        if not self.numero:  # el número lo asigna el sistema, no el usuario
+            self.numero = f'CP-{timezone.localdate():%Y%m%d}-{uuid.uuid4().hex[:6].upper()}'
+        super().save(*args, **kwargs)
+
 
 class Abono(models.Model):
     """Abono confirmado. OneToOne con el comprobante: nunca dos abonos por comprobante (RNF-07)."""

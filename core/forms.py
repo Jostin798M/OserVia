@@ -559,7 +559,7 @@ class ComprobanteForm(EstiloMixin, forms.ModelForm):
 
     class Meta:
         model = Comprobante
-        fields = ['expediente', 'monto', 'fecha_pago', 'numero', 'medio', 'archivo']
+        fields = ['expediente', 'monto', 'fecha_pago', 'medio', 'archivo']
         widgets = {'fecha_pago': fecha(), 'monto': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01'})}
 
     def __init__(self, user, *args, **kwargs):
@@ -577,9 +577,7 @@ class ComprobanteForm(EstiloMixin, forms.ModelForm):
 
     def clean(self):
         d = super().clean()
-        exp, numero = d.get('expediente'), (d.get('numero') or '').strip()
-        if exp and numero and exp.comprobantes.filter(numero__iexact=numero).exclude(estado='rechazado').exists():
-            self.add_error('numero', 'Este comprobante ya fue enviado para este servicio.')
+        exp = d.get('expediente')
         if exp and d.get('monto') is not None:
             if exp.precio_total is None:
                 self.add_error('expediente', 'Este servicio aún no tiene un precio registrado. Consulta a tu asesor antes de pagar.')
