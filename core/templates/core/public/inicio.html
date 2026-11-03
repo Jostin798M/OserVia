@@ -19,7 +19,9 @@
   {% if servicios %}
   <section id="servicios" aria-labelledby="t-servicios">
     <h2 id="t-servicios" class="sr-only">Servicios</h2>
-    <div class="cards-grid">
+    <div class="carrusel" data-carrusel>
+      <button type="button" class="carrusel-btn carrusel-btn--prev" data-carrusel-prev aria-label="Anterior">{% icon 'arrow-left' 18 %}</button>
+      <div class="carrusel-pista" data-carrusel-pista>
       {% for s in servicios %}
       <article class="feature fade-up">
         <span class="feature-icon">{% icon s.icono 22 %}</span>
@@ -27,6 +29,8 @@
         <p>{{ s.descripcion }}</p>
       </article>
       {% endfor %}
+      </div>
+      <button type="button" class="carrusel-btn carrusel-btn--next" data-carrusel-next aria-label="Siguiente">{% icon 'arrow-right' 18 %}</button>
     </div>
   </section>
   {% endif %}

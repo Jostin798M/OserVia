@@ -1330,3 +1330,14 @@ body:not(.public) main#contenido { padding-bottom: 48px; }
 .sidebar-label { font-size: .7rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--warn); }
 .brand:hover { opacity: .9; }
 @media (max-width: 380px) { .brand-logo { height: 42px; } }
+
+/* Carrusel de servicios */
+.carrusel { position: relative; }
+.carrusel-pista { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; padding: 4px 2px 8px; }
+.carrusel-pista::-webkit-scrollbar { display: none; }
+.carrusel-pista > * { flex: 0 0 86%; scroll-snap-align: start; }
+@media (min-width: 640px) { .carrusel-pista > * { flex-basis: calc((100% - 20px) / 2); } }
+@media (min-width: 960px) { .carrusel-pista > * { flex-basis: calc((100% - 40px) / 3); } }
+.carrusel-btn { position: absolute; top: 50%; z-index: 2; width: 42px; height: 42px; border-radius: 999px; display: grid; place-items: center; transform: translateY(-50%); border: 1px solid var(--border); background: var(--surface); color: var(--text); box-shadow: var(--shadow); cursor: pointer; }
+.carrusel-btn:disabled { opacity: 0; pointer-events: none; }
+.carrusel-btn--prev { left: -14px; } .carrusel-btn--next { right: -14px; }

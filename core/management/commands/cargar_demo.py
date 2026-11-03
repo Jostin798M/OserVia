@@ -55,6 +55,15 @@ def png(ancho=4, alto=4, color=(26, 79, 156)):
             + bloque(b'IDAT', zlib.compress(filas)) + bloque(b'IEND', b''))
 
 
+DEMO = Path(__file__).resolve().parents[2] / 'demo'
+
+
+def demo(nombre, texto):
+    """PDF de demostración con diseño (core/demo); si falta, uno mínimo."""
+    ruta = DEMO / nombre
+    return ruta.read_bytes() if ruta.exists() else pdf(texto)
+
+
 class Command(BaseCommand):
     help = 'Carga datos de demostración de OserVia.'
 
@@ -256,10 +265,10 @@ class Command(BaseCommand):
                                           creado_por=a)
         servicios.asignar(e_paq, a, adm)
         DocumentoViaje.objects.create(expediente=e_paq, titulo='Voucher del hotel', subido_por=a,
-                                      archivo=ContentFile(pdf('Voucher de hotel - Panama Ciudad'), name='voucher.pdf'))
+                                      archivo=ContentFile(demo('voucher.pdf', 'Voucher de hotel - Panama Ciudad'), name='voucher.pdf'))
         c1 = Comprobante.objects.create(expediente=e_paq, enviado_por=c, monto=Decimal('650.00'), fecha_pago=hoy - timedelta(days=2),
                                         numero='TRX-889201', medio='transferencia', nombre_original='transferencia.pdf',
-                                        archivo=ContentFile(pdf('Comprobante TRX-889201'), name='transferencia.pdf'))
+                                        archivo=ContentFile(demo('comprobante.pdf', 'Comprobante TRX-889201'), name='transferencia.pdf'))
         servicios.confirmar_comprobante(c1.pk, a)
         Comprobante.objects.create(expediente=e_paq, enviado_por=c, monto=Decimal('300.00'), fecha_pago=hoy, numero='DEP-55102',
                                    medio='deposito', nombre_original='deposito.png', archivo=ContentFile(png(), name='deposito.png'))
@@ -281,14 +290,14 @@ class Command(BaseCommand):
         for nombre, flujo in [('Pasaporte vigente', ['aceptado']), ('Estados de cuenta (últimos 3 meses)', ['correccion']),
                               ('Reserva de vuelo', [])]:
             d = docs[nombre]
-            servicios.subir_documento(d, ContentFile(pdf(nombre), name=f'{nombre[:20]}.pdf'), c)
+            servicios.subir_documento(d, ContentFile(demo('documento.pdf', nombre), name=f'{nombre[:20]}.pdf'), c)
             for paso in flujo:
                 servicios.revisar_documento(d, paso, 'Falta el sello del banco en el mes de agosto.' if paso == 'correccion' else '', a)
         CorreoConsulado.objects.create(expediente=e_visa, destinatario='consulado@ejemplo.com', asunto='Consulta de disponibilidad de citas',
                                        fecha_envio=hoy - timedelta(days=3), proxima_revision=hoy, registrado_por=a)
         c2 = Comprobante.objects.create(expediente=e_visa, enviado_por=c, monto=Decimal('225.00'), fecha_pago=hoy - timedelta(days=10),
                                         numero='TRX-771020', medio='transferencia', nombre_original='abono-visa.pdf',
-                                        archivo=ContentFile(pdf('Comprobante TRX-771020'), name='abono-visa.pdf'))
+                                        archivo=ContentFile(demo('comprobante.pdf', 'Comprobante TRX-771020'), name='abono-visa.pdf'))
         servicios.confirmar_comprobante(c2.pk, a)
 
         # 5) Boletería con vuelo emitido y aviso de la aerolínea.
@@ -299,13 +308,13 @@ class Command(BaseCommand):
         salida = datetime.combine(hoy + timedelta(days=20), time(8, 15), tzinfo=tz)
         VueloContratado.objects.create(expediente=e_vuelo, aerolinea='Avianca', numero_vuelo='AV 8371', origen='Guayaquil (GYE)',
                                        destino='Miami (MIA)', salida=salida, llegada=salida + timedelta(hours=3, minutes=40),
-                                       boleto=ContentFile(pdf('Boleto electronico AV 8371'), name='boleto.pdf'))
+                                       boleto=ContentFile(demo('boleto.pdf', 'Boleto electronico AV 8371'), name='boleto.pdf'))
         AvisoVuelo.objects.create(expediente=e_vuelo, aerolinea='Avianca', numero_vuelo='AV 8371', fecha_vuelo=salida.date(),
                                   tipo='reprogramacion', cambio_informado='La aerolínea adelantó la salida por ajuste de itinerario.',
                                   nueva_fecha_hora=salida - timedelta(hours=1, minutes=30), registrado_por=self.asesor2)
         c3 = Comprobante.objects.create(expediente=e_vuelo, enviado_por=c, monto=Decimal('420.00'), fecha_pago=hoy - timedelta(days=6),
                                         numero='DEP-33019', medio='deposito', nombre_original='deposito.pdf',
-                                        archivo=ContentFile(pdf('Deposito DEP-33019'), name='deposito.pdf'))
+                                        archivo=ContentFile(demo('comprobante.pdf', 'Deposito DEP-33019'), name='deposito.pdf'))
         servicios.confirmar_comprobante(c3.pk, self.asesor2)
 
         # Citas con la agencia

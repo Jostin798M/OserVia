@@ -170,6 +170,22 @@
     sync();
   });
 
+  /* ------------------------------------------------------------ Carrusel */
+  document.querySelectorAll('[data-carrusel]').forEach(function (c) {
+    var pista = c.querySelector('[data-carrusel-pista]');
+    var prev = c.querySelector('[data-carrusel-prev]'), next = c.querySelector('[data-carrusel-next]');
+    function paso() { return pista.firstElementChild ? pista.firstElementChild.getBoundingClientRect().width + 20 : pista.clientWidth; }
+    function sync() {
+      prev.disabled = pista.scrollLeft < 5;
+      next.disabled = pista.scrollLeft + pista.clientWidth >= pista.scrollWidth - 5;
+    }
+    prev.addEventListener('click', function () { pista.scrollBy({ left: -paso() }); });
+    next.addEventListener('click', function () { pista.scrollBy({ left: paso() }); });
+    pista.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', sync);
+    sync();
+  });
+
   /* ------------------------------------------------------------ Barra lateral del panel (móvil) */
   var sidebar = document.getElementById('sidebar');
   if (sidebar) {
