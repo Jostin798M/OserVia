@@ -1,0 +1,1 @@
+<tr><td class="t-fecha">{{ o.fecha_salida|date:"j M" }}</td><td class="t-destino"><a href="{{ o.get_absolute_url }}">{{ o.destino }}</a></td><td class="t-precio">${{ o.precio_persona|floatformat:"0g" }}</td></tr>

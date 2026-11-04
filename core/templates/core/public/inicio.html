@@ -2,16 +2,29 @@
 {% load ui %}
 {% block content %}
 <section class="hero hero--home">
-  {% include 'core/partials/hero_art.html' %}
-  <div class="container fade-up">
-    <p class="eyebrow">{% icon 'pin' 14 %}{{ sitio.ciudad }}</p>
-    <h1 class="h-hero">{{ sitio.eslogan }}</h1>
-    <p class="lead-hero">{{ sitio.descripcion }}</p>
-    <div class="hero-actions">
-      <a class="btn btn-lg btn-light" href="{% url 'vuelos' %}">{% icon 'plane' 18 %}Buscar vuelos</a>
-      <a class="btn btn-lg btn-ghost-light" href="{% url 'paquetes' %}">{% icon 'suitcase' 18 %}Ver paquetes</a>
-      {% if sitio.video_tutorial %}<button type="button" class="btn btn-lg btn-ghost-light" data-tutorial-open>{% icon 'play' 18 %}Cómo usar OserVia</button>{% endif %}
+  <div class="container hero-portada">
+    <div>
+      <p class="eyebrow">{% icon 'pin' 16 %}{{ sitio.ciudad }}</p>
+      <h1 class="h-hero">{{ sitio.eslogan }}</h1>
+      <p class="lead-hero">{{ sitio.descripcion }}</p>
+      <div class="hero-actions">
+        <a class="btn btn-lg btn-light" href="{% url 'vuelos' %}">{% icon 'plane' 18 %}Buscar vuelos</a>
+        <a class="btn btn-lg btn-ghost-light" href="{% url 'paquetes' %}">{% icon 'suitcase' 18 %}Ver paquetes</a>
+        {% if sitio.video_tutorial %}<button type="button" class="btn btn-lg btn-ghost-light" data-tutorial-open>{% icon 'play' 18 %}Cómo usar OserVia</button>{% endif %}
+      </div>
     </div>
+    {% if vuelos or paquetes %}
+    <div class="tablero">
+      <h2 id="t-salidas">Próximas salidas</h2>
+      <table aria-labelledby="t-salidas">
+        <thead><tr><th scope="col">Salida</th><th scope="col">Destino</th><th scope="col">Desde</th></tr></thead>
+        <tbody>
+          {% for o in vuelos %}{% include 'core/public/_tablero_fila.html' %}{% endfor %}
+          {% for o in paquetes %}{% include 'core/public/_tablero_fila.html' %}{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
   </div>
 </section>
 
@@ -23,7 +36,7 @@
       <button type="button" class="carrusel-btn carrusel-btn--prev" data-carrusel-prev aria-label="Anterior">{% icon 'arrow-left' 18 %}</button>
       <div class="carrusel-pista" data-carrusel-pista>
       {% for s in servicios %}
-      <article class="feature fade-up">
+      <article class="feature">
         <span class="feature-icon">{% icon s.icono 22 %}</span>
         <h3>{{ s.titulo }}</h3>
         <p>{{ s.descripcion }}</p>
@@ -38,7 +51,7 @@
   {% if promociones %}
   <section class="section" aria-labelledby="t-promos">
     <div class="section-head"><div><h2 id="t-promos">Promociones vigentes</h2><p>Solicítalas dentro del período indicado.</p></div>
-      <a class="btn btn-sm" href="{% url 'promociones' %}">Ver todas{% icon 'arrow-right' 16 %}</a></div>
+      <a class="btn btn-sm" href="{% url 'promociones' %}">Ver todas</a></div>
     <div class="cards-grid">
       {% for p in promociones %}{% include 'core/public/_promo.html' %}{% endfor %}
     </div>
@@ -48,7 +61,7 @@
   {% if vuelos %}
   <section class="section" aria-labelledby="t-vuelos">
     <div class="section-head"><div><h2 id="t-vuelos">Ofertas de vuelos</h2><p>Precios por persona publicados por la agencia.</p></div>
-      <a class="btn btn-sm" href="{% url 'vuelos' %}">Buscar vuelos{% icon 'arrow-right' 16 %}</a></div>
+      <a class="btn btn-sm" href="{% url 'vuelos' %}">Buscar vuelos</a></div>
     <div class="cards-grid">{% for o in vuelos %}{% include 'core/public/_oferta_card.html' %}{% endfor %}</div>
   </section>
   {% endif %}
@@ -56,7 +69,7 @@
   {% if paquetes %}
   <section class="section" aria-labelledby="t-paquetes">
     <div class="section-head"><div><h2 id="t-paquetes">Paquetes turísticos</h2><p>Vuelo, hotel y actividades en un solo plan.</p></div>
-      <a class="btn btn-sm" href="{% url 'paquetes' %}">Ver paquetes{% icon 'arrow-right' 16 %}</a></div>
+      <a class="btn btn-sm" href="{% url 'paquetes' %}">Ver paquetes</a></div>
     <div class="cards-grid">{% for o in paquetes %}{% include 'core/public/_oferta_card.html' %}{% endfor %}</div>
   </section>
   {% endif %}

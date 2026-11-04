@@ -529,9 +529,9 @@ class PagosTest(Base):
         self.e = self.expediente('paquete', asesor=self.asesor, paquete_nombre='P', destino='D', fecha_salida=HOY(),
                                  fecha_regreso=HOY(), precio_total=Decimal('1000'))
 
-    def enviar(self, numero='T-1', monto='400'):
+    def enviar(self, monto='400'):
         return self.client.post(reverse('pagos'), {'expediente': self.e.pk, 'monto': monto, 'fecha_pago': HOY().isoformat(),
-                                                   'numero': numero, 'medio': 'transferencia', 'archivo': archivo_pdf('c.pdf')})
+                                                   'medio': 'transferencia', 'archivo': archivo_pdf('c.pdf')})
 
     def test_rs_10_2_a_10_4_flujo_de_pago(self):
         self.como(self.user)
@@ -539,14 +539,13 @@ class PagosTest(Base):
         c = Comprobante.objects.get()
         self.assertEqual(c.estado, 'pendiente')
         self.assertEqual(self.e.saldo, Decimal('1000'))  # pendiente no se descuenta
-        r = self.enviar()
-        self.assertIn('numero', r.context['form'].errors)
+        self.assertRegex(c.numero, r'^CP-\d{8}-[0-9A-F]{6}$')  # lo asigna el sistema
         self.como(self.asesor)
         self.client.post(self.e.get_panel_url(), {'accion': 'confirmar', 'id': c.pk})
         self.assertEqual(self.e.saldo, Decimal('600'))
         self.como(self.user)
-        self.enviar('T-2', '100')
-        c2 = Comprobante.objects.get(numero='T-2')
+        self.enviar('100')
+        c2 = Comprobante.objects.exclude(pk=c.pk).get()
         self.como(self.asesor)
         r = self.client.post(self.e.get_panel_url(), {'accion': 'rechazar', 'id': c2.pk, 'motivo': ''})
         self.assertContains(r, 'Explica el motivo')
