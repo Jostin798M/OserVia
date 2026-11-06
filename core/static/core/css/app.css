@@ -1710,3 +1710,11 @@ body.esq-activo .site-footer { display: none; }
   .carga-logo-lleno { clip-path: none; animation: none; }
   .carga-logo-marca { animation: none; }
 }
+
+/* --- Criterios de contraseña */
+.criterios { display: grid; gap: 4px; margin: 8px 0 0; padding: 0; list-style: none; font-size: .84rem; }
+.criterio { display: flex; align-items: center; gap: 7px; color: var(--muted); transition: color .2s; }
+.criterio .icon { width: 16px; height: 16px; opacity: .55; transition: opacity .2s, transform .25s var(--ease); }
+.criterio--ok { color: var(--success); font-weight: 600; }
+.criterio--ok .icon { opacity: 1; transform: scale(1.08); }
+input[data-criterios], input[data-confirma] { padding-right: 46px; }

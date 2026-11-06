@@ -14,7 +14,7 @@ from django.views.decorators.http import require_POST
 
 from . import servicios
 from .archivos import servir
-from .forms import (AceptarCotizacionForm, CambiarPasswordForm, ComprobanteForm, LoginForm, PerfilForm, RegistroForm,
+from .forms import (AceptarCotizacionForm, CambioObligatorioClaveForm, CambiarPasswordForm, ComprobanteForm, LoginForm, PerfilForm, RegistroForm,
                     SolicitudViajeForm, SubirDocumentoForm)
 from .models import (ArchivoDocumento, AvisoVuelo, Cita, CitaConsular, Comprobante, Cotizacion, DocumentoViaje,
                      Expediente, Oferta, Perfil, SolicitudViaje, VueloContratado)
@@ -60,6 +60,22 @@ def registro_view(request):
         messages.success(request, f'¡Cuenta creada! Bienvenido/a, {user.first_name}.')  # RS-01.1
         return redirect('dashboard')
     return render(request, 'core/registro.html', {'form': form})
+
+
+@login_required
+def cambiar_clave_view(request):
+    """Contraseña propia obligatoria tras un restablecimiento general."""
+    perfil = Perfil.objects.filter(usuario=request.user).first()
+    if not perfil or not perfil.debe_cambiar_clave:
+        return redirect(_inicio_de(request.user))
+    form = CambioObligatorioClaveForm(request.user, request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        update_session_auth_hash(request, form.user)
+        Perfil.objects.filter(pk=perfil.pk).update(debe_cambiar_clave=False)
+        messages.success(request, 'Tu contraseña se actualizó.')
+        return redirect(_inicio_de(request.user))
+    return render(request, 'core/cambiar_clave.html', {'form': form})
 
 
 @require_POST

@@ -62,3 +62,21 @@ class ArchivoField(forms.FileField):
         if f and hasattr(f, 'size') and f is not initial:
             validar_archivo(f, self.extensiones, self.max_mb)
         return f
+
+
+class ClaveBasicaValidator:
+    """Mayúscula, minúscula y número; la longitud y las contraseñas comunes tienen sus propios validadores."""
+
+    def validate(self, password, user=None):
+        errores = []
+        if not any(c.isupper() for c in password):
+            errores.append('La contraseña debe incluir al menos una mayúscula.')
+        if not any(c.islower() for c in password):
+            errores.append('La contraseña debe incluir al menos una minúscula.')
+        if not any(c.isdigit() for c in password):
+            errores.append('La contraseña debe incluir al menos un número.')
+        if errores:
+            raise forms.ValidationError(errores)
+
+    def get_help_text(self):
+        return 'Usa al menos una mayúscula, una minúscula y un número.'

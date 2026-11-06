@@ -1,0 +1,18 @@
+{% extends 'core/auth_base.html' %}
+{% load ui %}
+{% block title %}Crea tu contraseña{% endblock %}
+{% block content %}
+<h1>Crea tu contraseña</h1>
+<p class="lead">Por seguridad, elige una contraseña nueva para seguir usando tu cuenta. No la uses en otros sitios.</p>
+<form method="post" class="stack" novalidate data-submit-once>
+  {% csrf_token %}
+  {% include 'core/partials/form_errors.html' %}
+  {% include 'core/partials/field.html' with field=form.new_password1 icon='lock' label='Nueva contraseña' %}
+  {% include 'core/partials/field.html' with field=form.new_password2 icon='lock' label='Confirmar contraseña' %}
+  <button type="submit" class="btn btn-primary btn-lg btn-block">Guardar contraseña</button>
+</form>
+<form method="post" action="{% url 'logout' %}" style="margin-top:14px;text-align:center">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-ghost">Cerrar sesión</button>
+</form>
+{% endblock %}

@@ -1489,4 +1489,59 @@
   });
   /* Al volver con el botón Atrás, la página se restaura sin la carga. */
   window.addEventListener('pageshow', function (e) { if (e.persisted) quitarEsqueleto(); });
+
+  /* ------------------------------------------------------------ Contraseña nueva: criterios en vivo */
+  function mostrarClave(campo) {
+    var caja = campo.closest('.control');
+    if (!caja || caja.querySelector('.control-end')) return;
+    var fin = el('span', 'control-end'), boton = el('button', 'icon-btn');
+    function pintar(visible) {
+      boton.textContent = '';
+      boton.appendChild(icono(visible ? 'eye-off' : 'eye'));
+      boton.setAttribute('aria-label', visible ? 'Ocultar contraseña' : 'Mostrar contraseña');
+    }
+    boton.addEventListener('click', function () {
+      var visible = campo.type === 'text';
+      campo.type = visible ? 'password' : 'text';
+      pintar(!visible);
+    });
+    pintar(false);
+    fin.appendChild(boton);
+    caja.appendChild(fin);
+  }
+  function lineaCriterio(lista, texto) {
+    var li = el('li', 'criterio');
+    li.appendChild(icono('check-circle'));
+    li.appendChild(el('span', '', texto));
+    lista.appendChild(li);
+    return li;
+  }
+  document.querySelectorAll('input[data-criterios]').forEach(function (campo) {
+    mostrarClave(campo);
+    var lista = el('ul', 'criterios');
+    var reglas = [
+      ['Al menos 8 caracteres', function (v) { return v.length >= 8; }],
+      ['Una letra mayúscula', function (v) { return /\p{Lu}/u.test(v); }],
+      ['Una letra minúscula', function (v) { return /\p{Ll}/u.test(v); }],
+      ['Un número', function (v) { return /\d/.test(v); }]
+    ].map(function (r) { return { ok: r[1], li: lineaCriterio(lista, r[0]) }; });
+    campo.closest('.control').insertAdjacentElement('afterend', lista);
+    function pintar() {
+      reglas.forEach(function (r) { r.li.classList.toggle('criterio--ok', r.ok(campo.value)); });
+    }
+    campo.addEventListener('input', pintar);
+    pintar();
+  });
+  document.querySelectorAll('input[data-confirma]').forEach(function (campo) {
+    mostrarClave(campo);
+    var original = document.getElementById(campo.dataset.confirma);
+    if (!original) return;
+    var lista = el('ul', 'criterios');
+    var li = lineaCriterio(lista, 'Las contraseñas coinciden');
+    campo.closest('.control').insertAdjacentElement('afterend', lista);
+    function pintar() { li.classList.toggle('criterio--ok', !!campo.value && campo.value === original.value); }
+    campo.addEventListener('input', pintar);
+    original.addEventListener('input', pintar);
+    pintar();
+  });
 })();

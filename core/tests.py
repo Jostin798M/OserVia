@@ -914,3 +914,70 @@ class PantallasDeCargaTest(TestCase):
         r = self.client.get(reverse('login'))
         self.assertContains(r, 'data-carga-logo')
         self.assertContains(r, 'data-inicio-sesion')
+
+
+class CambioClaveTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user('c@x.com', 'c@x.com', 'Actual-Clave1', first_name='Ana', last_name='Paz')
+        Perfil.objects.update_or_create(usuario=self.user, defaults={'debe_cambiar_clave': True})
+        self.url = reverse('cambiar_clave')
+
+    def entrar(self):
+        return self.client.post(reverse('login'), {'email': 'c@x.com', 'password': 'Actual-Clave1'}, follow=True)
+
+    def nueva(self, clave, confirmar=None):
+        return self.client.post(self.url, {'new_password1': clave, 'new_password2': confirmar or clave})
+
+    def test_al_entrar_lleva_al_cambio_y_no_deja_usar_el_sistema(self):
+        self.assertEqual(self.entrar().redirect_chain[-1][0], self.url)
+        for destino in (reverse('dashboard'), reverse('pagos'), reverse('inicio')):
+            self.assertRedirects(self.client.get(destino), self.url, fetch_redirect_response=False)
+        self.assertEqual(self.client.get(reverse('privacidad')).status_code, 200)
+
+    def test_exige_criterios_basicos(self):
+        self.entrar()
+        for clave, parte in (('Ab1', 'corta'), ('minuscula1', 'mayúscula'), ('MAYUSCULA1', 'minúscula'), ('SinNumeros', 'número')):
+            r = self.nueva(clave)
+            self.assertEqual(r.status_code, 200, clave)
+            self.assertContains(r, parte, msg_prefix=clave)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('Actual-Clave1'))
+
+    def test_no_coinciden_ni_repite_la_actual(self):
+        self.entrar()
+        self.assertIn('new_password2', self.nueva('Nueva-Clave9', 'Otra-Clave9').context['form'].errors)
+        self.assertContains(self.nueva('Actual-Clave1'), 'distinta de la actual')
+
+    def test_cambio_correcto_mantiene_la_sesion_y_libera_la_cuenta(self):
+        self.entrar()
+        self.assertRedirects(self.nueva('Nueva-Clave9'), reverse('dashboard'), fetch_redirect_response=False)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('Nueva-Clave9'))
+        self.assertFalse(self.user.perfil.debe_cambiar_clave)
+        self.assertEqual(self.client.get(reverse('dashboard')).status_code, 200)
+
+    def test_sin_sesion_pide_iniciar_sesion(self):
+        self.assertEqual(self.client.get(self.url).status_code, 302)
+        self.assertIn(reverse('login'), self.client.get(self.url).url)
+
+    def test_cuenta_sin_el_aviso_no_ve_la_pagina(self):
+        Perfil.objects.filter(usuario=self.user).update(debe_cambiar_clave=False)
+        self.entrar()
+        self.assertRedirects(self.client.get(self.url), reverse('dashboard'), fetch_redirect_response=False)
+
+    def test_registro_y_perfil_aplican_los_criterios(self):
+        from django.contrib.auth.password_validation import validate_password
+        from django.core.exceptions import ValidationError
+        with self.assertRaises(ValidationError):
+            validate_password('sinmayuscula1')
+        validate_password('Viajes-Guayaquil7')
+
+    def test_comando_cierra_sesiones_y_exige_cambio(self):
+        from django.contrib.sessions.models import Session
+        from django.core.management import call_command
+        Perfil.objects.filter(usuario=self.user).update(debe_cambiar_clave=False)
+        self.entrar()
+        self.assertTrue(Session.objects.exists())
+        call_command('cerrar_sesiones', '--exigir-cambio', verbosity=0)
+        self.assertFalse(Session.objects.exists())
+        self.assertTrue(Perfil.objects.get(usuario=self.user).debe_cambiar_clave)

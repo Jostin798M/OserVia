@@ -114,10 +114,10 @@ class RegistroForm(EstiloMixin, forms.Form):
                              widget=forms.EmailInput(attrs={'autocomplete': 'email', 'placeholder': 'tu@correo.com'}))
     telefono = forms.CharField(label='Teléfono', max_length=20, validators=[validar_telefono],
                                widget=forms.TextInput(attrs={'type': 'tel', 'autocomplete': 'tel', 'placeholder': '+593 99 123 4567'}))
-    password1 = forms.CharField(label='Contraseña', strip=False, help_text='Mínimo 8 caracteres, no solo números.',
-                                widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}))
+    password1 = forms.CharField(label='Contraseña', strip=False, help_text='Mínimo 8 caracteres, con mayúscula, minúscula y número.',
+                                widget=forms.PasswordInput(attrs={'autocomplete': 'new-password', 'data-criterios': '1'}))
     password2 = forms.CharField(label='Confirmar contraseña', strip=False,
-                                widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}))
+                                widget=forms.PasswordInput(attrs={'autocomplete': 'new-password', 'data-confirma': 'id_password1'}))
     acepto = forms.BooleanField(label='Acepto los Términos y condiciones y la Política de privacidad',
                                 error_messages={'required': 'Debes aceptar los Términos y condiciones y la Política de privacidad.'})
 
@@ -170,7 +170,23 @@ class RecuperarForm(EstiloMixin, PasswordResetForm):
 
 
 class NuevaPasswordForm(EstiloMixin, SetPasswordForm):
-    pass
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['new_password1'].help_text = ''
+        self.fields['new_password1'].widget.attrs['data-criterios'] = '1'
+        self.fields['new_password2'].help_text = ''
+        self.fields['new_password2'].widget.attrs['data-confirma'] = 'id_new_password1'
+
+
+class CambioObligatorioClaveForm(NuevaPasswordForm):
+    """Primera contraseña propia: no puede repetir la que se usó para entrar."""
+
+    def clean(self):
+        datos = super().clean()
+        clave = datos.get('new_password1')
+        if clave and 'new_password2' not in self.errors and self.user.check_password(clave):
+            self.add_error('new_password2', 'Elige una contraseña distinta de la actual.')
+        return datos
 
 
 class PerfilForm(EstiloMixin, forms.Form):
@@ -212,9 +228,11 @@ class CambiarPasswordForm(EstiloMixin, PasswordChangeForm):
         self.fields['old_password'].label = 'Contraseña actual'
         self.fields['old_password'].widget.attrs.pop('autofocus', None)
         self.fields['new_password1'].label = 'Nueva contraseña'
-        self.fields['new_password1'].help_text = 'Mínimo 8 caracteres, no solo números ni muy común.'
+        self.fields['new_password1'].help_text = ''
+        self.fields['new_password1'].widget.attrs['data-criterios'] = '1'
         self.fields['new_password2'].label = 'Confirmar nueva contraseña'
-        self.fields['new_password2'].help_text = 'Escríbela de nuevo para confirmar.'
+        self.fields['new_password2'].help_text = ''
+        self.fields['new_password2'].widget.attrs['data-confirma'] = 'id_new_password1'
 
 
 # ==================================================================== Público

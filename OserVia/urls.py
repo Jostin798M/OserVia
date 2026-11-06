@@ -44,6 +44,7 @@ urlpatterns = [
 
     # ---------------------------------------------------------- Cuenta del usuario
     path('mi-cuenta/', v.dashboard_view, name='dashboard'),
+    path('cambiar-clave/', v.cambiar_clave_view, name='cambiar_clave'),
     path('mi-cuenta/perfil/', v.perfil_view, name='perfil'),
     path('mi-cuenta/cotizar/', v.cotizar_view, name='cotizar'),
     path('mi-cuenta/solicitudes/', v.mis_solicitudes_view, name='mis_solicitudes'),

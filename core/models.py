@@ -48,6 +48,7 @@ class Perfil(models.Model):
     cedula = models.CharField('cédula / pasaporte', max_length=20, blank=True)
     telefono = models.CharField('teléfono', max_length=20, blank=True)
     terminos_aceptados_en = models.DateTimeField('aceptó términos y privacidad el', null=True, blank=True)
+    debe_cambiar_clave = models.BooleanField('debe cambiar la contraseña al entrar', default=False)
 
     class Meta:
         verbose_name = 'perfil'
