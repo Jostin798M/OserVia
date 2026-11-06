@@ -11,7 +11,8 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET
 
 from .archivos import servir
-from .forms import BuscarVuelosForm, ConsultaForm
+from .lugares import coincide, sugerencias
+from .forms import BuscarHospedajeForm, BuscarPaquetesForm, BuscarVuelosForm, ConsultaForm
 from .models import (REQUISITOS_VISA, Beneficio, Consulta, ContenidoSitio, Oferta, PreguntaFrecuente, Promocion,
                      Publicacion, Servicio)
 
@@ -57,6 +58,7 @@ def inicio(request):
         'promociones': promociones_vigentes()[:3],
         'vuelos': ofertas_publicas('vuelo')[:3],
         'paquetes': ofertas_publicas('paquete')[:3],
+        'hospedajes': ofertas_publicas('hospedaje')[:3],
         'publicaciones': Publicacion.objects.filter(publicado=True)[:6],
         'preguntas': PreguntaFrecuente.objects.filter(publicado=True)[:4],
     })
@@ -69,20 +71,65 @@ def vuelos(request):
     filtrando = False
     if form.is_valid():
         d = form.cleaned_data
-        if d['destino']:
-            qs = qs.filter(destino__icontains=d['destino'].strip())
         if d['fecha']:
             qs = qs.filter(fecha_salida=d['fecha'])
         if d['precio_max'] is not None:
             qs = qs.filter(precio_persona__lte=d['precio_max'])
         if d['duracion_max'] is not None:
             qs = qs.filter(duracion_horas__lte=d['duracion_max'])
+        # Los lugares se comparan en Python para ignorar las tildes en cualquier base de datos.
+        if d['origen'].strip():
+            qs = [o for o in qs if coincide(o.origen, d['origen'])]
+        if d['destino'].strip():
+            qs = [o for o in qs if coincide(o.destino, d['destino'])]
         filtrando = any(v not in (None, '') for v in d.values())
-    return render(request, 'core/public/vuelos.html', {'form': form, 'ofertas': qs, 'filtrando': filtrando})
+    publicadas = ofertas_publicas('vuelo')
+    return render(request, 'core/public/vuelos.html', {
+        'form': form, 'ofertas': qs, 'filtrando': filtrando,
+        'lugares_origen': sugerencias(publicadas, 'origen'), 'lugares_destino': sugerencias(publicadas, 'destino')})
 
 
 def paquetes(request):
-    return render(request, 'core/public/paquetes.html', {'ofertas': ofertas_publicas('paquete')})
+    form = BuscarPaquetesForm(request.GET or None)
+    qs = ofertas_publicas('paquete')
+    filtrando = False
+    if form.is_valid():
+        d = form.cleaned_data
+        if d['fecha']:
+            qs = qs.filter(fecha_salida=d['fecha'])
+        if d['precio_max'] is not None:
+            qs = qs.filter(precio_persona__lte=d['precio_max'])
+        if d['duracion_max'] is not None:
+            qs = qs.filter(duracion_dias__lte=d['duracion_max'])
+        if d['destino'].strip():
+            qs = [o for o in qs if coincide(o.destino, d['destino'])]
+        filtrando = any(v not in (None, '') for v in d.values())
+    return render(request, 'core/public/paquetes.html', {
+        'form': form, 'ofertas': qs, 'filtrando': filtrando,
+        'lugares_destino': sugerencias(ofertas_publicas('paquete'), 'destino', con_codigo=False)})
+
+
+def promocion(request, pk):
+    p = get_object_or_404(promociones_vigentes(), pk=pk)
+    return render(request, 'core/public/promocion.html', {'p': p, 'ofertas': ofertas_publicas().filter(promocion=p)})
+
+
+def hospedaje(request):
+    form = BuscarHospedajeForm(request.GET or None)
+    qs = ofertas_publicas('hospedaje')
+    filtrando = False
+    if form.is_valid():
+        d = form.cleaned_data
+        if d['fecha']:
+            qs = qs.filter(fecha_salida=d['fecha'])
+        if d['precio_max'] is not None:
+            qs = qs.filter(precio_persona__lte=d['precio_max'])
+        if d['destino'].strip():
+            qs = [o for o in qs if coincide(o.destino, d['destino'])]
+        filtrando = any(v not in (None, '') for v in d.values())
+    return render(request, 'core/public/hospedaje.html', {
+        'form': form, 'ofertas': qs, 'filtrando': filtrando,
+        'lugares_destino': sugerencias(ofertas_publicas('hospedaje'), 'destino', con_codigo=False)})
 
 
 def promociones(request):
@@ -147,14 +194,19 @@ def asistente(request):
     if palabras & {'horario', 'horarios', 'atienden', 'abren', 'hora', 'horas', 'abierto'}:
         return JsonResponse({'respuesta': f'Nuestro horario de atención es: {sitio.horario}. '
                                           f'Estamos en {sitio.direccion}, {sitio.ciudad}.', 'encontrada': True})
+    if palabras & {'hospedaje', 'hospedajes', 'hotel', 'hoteles', 'alojamiento', 'hospedarme', 'hospedarse'}:
+        return JsonResponse({'respuesta': 'Tenemos ofertas de hospedaje con precio por persona para toda la estadía. '
+                                          'Puedes buscarlas por destino, fecha de entrada y precio, y solicitar una '
+                                          'cotización desde tu cuenta.',
+                             'enlace': reverse('hospedaje'), 'enlace_texto': 'Ver hospedaje', 'encontrada': True})
     if palabras & {'cotizar', 'cotizacion', 'cotizaciones', 'presupuesto', 'precio', 'precios', 'costo', 'cuesta'}:
-        return JsonResponse({'respuesta': 'Para solicitar una cotización: elige una oferta en «Vuelos» o «Paquetes» y '
+        return JsonResponse({'respuesta': 'Para solicitar una cotización: elige una oferta en «Vuelos», «Paquetes» u «Hospedaje» y '
                                           'pulsa «Solicitar cotización», o usa «Cotizar viaje» en tu cuenta. Necesitas '
                                           'iniciar sesión (crear una cuenta es gratis). Un asesor te enviará la propuesta '
                                           'y podrás aceptarla o rechazarla desde tu cuenta.',
                              'enlace': reverse('cotizar'), 'enlace_texto': 'Solicitar cotización', 'encontrada': True})
     if palabras & {'servicio', 'servicios', 'ofrecen', 'hacen'}:
-        lista = ', '.join(s.titulo for s in Servicio.objects.filter(publicado=True)) or 'asesoría de visas, vuelos y paquetes turísticos'
+        lista = ', '.join(s.titulo for s in Servicio.objects.filter(publicado=True)) or 'asesoría de visas, vuelos, paquetes turísticos y hospedaje'
         return JsonResponse({'respuesta': f'Ofrecemos: {lista}.', 'enlace': reverse('inicio') + '#servicios',
                              'enlace_texto': 'Ver servicios', 'encontrada': True})
 
@@ -176,9 +228,9 @@ def asistente(request):
 # ---------------------------------------------------------------- Archivos públicos
 
 def archivo_publico(request, tipo, pk):
-    if tipo == 'tutorial':
+    if tipo in ('tutorial', 'tutorial-oscuro'):
         sitio = ContenidoSitio.actual()
-        f = sitio.video_tutorial
+        f = sitio.video_tutorial_oscuro if tipo == 'tutorial-oscuro' else sitio.video_tutorial
     else:
         pub = get_object_or_404(Publicacion, pk=pk, publicado=True)
         f = {'imagen': pub.imagen, 'video': pub.video}.get(tipo)

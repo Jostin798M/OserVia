@@ -10,6 +10,7 @@
     <div class="hero-actions">
       <a class="btn btn-lg btn-light" href="{% url 'vuelos' %}">{% icon 'plane' 18 %}Buscar vuelos</a>
       <a class="btn btn-lg btn-ghost-light" href="{% url 'paquetes' %}">{% icon 'suitcase' 18 %}Ver paquetes</a>
+      <a class="btn btn-lg btn-ghost-light" href="{% url 'hospedaje' %}">{% icon 'bed' 18 %}Ver hospedaje</a>
       {% if sitio.video_tutorial %}<button type="button" class="btn btn-lg btn-ghost-light" data-tutorial-open>{% icon 'play' 18 %}Cómo usar OserVia</button>{% endif %}
     </div>
   </div>
@@ -58,6 +59,14 @@
     <div class="section-head"><div><h2 id="t-paquetes">Paquetes turísticos</h2><p>Vuelo, hotel y actividades en un solo plan.</p></div>
       <a class="btn btn-sm" href="{% url 'paquetes' %}">Ver paquetes{% icon 'arrow-right' 16 %}</a></div>
     <div class="cards-grid">{% for o in paquetes %}{% include 'core/public/_oferta_card.html' %}{% endfor %}</div>
+  </section>
+  {% endif %}
+
+  {% if hospedajes %}
+  <section class="section" aria-labelledby="t-hospedaje">
+    <div class="section-head"><div><h2 id="t-hospedaje">Hospedaje</h2><p>Precios por persona para la estadía indicada.</p></div>
+      <a class="btn btn-sm" href="{% url 'hospedaje' %}">Ver hospedaje{% icon 'arrow-right' 16 %}</a></div>
+    <div class="cards-grid">{% for o in hospedajes %}{% include 'core/public/_oferta_card.html' %}{% endfor %}</div>
   </section>
   {% endif %}
 
@@ -111,7 +120,7 @@
 {% if sitio.video_tutorial %}
 <dialog class="modal" data-tutorial aria-label="Video tutorial">
   <div class="modal-head"><strong>Cómo usar OserVia</strong><button type="button" class="icon-btn" data-tutorial-close aria-label="Cerrar video">{% icon 'x' 16 %}</button></div>
-  <video controls preload="none" playsinline src="{% url 'archivo_publico' 'tutorial' 0 %}"></video>
+  <video controls preload="none" playsinline src="{% url 'archivo_publico' 'tutorial' 0 %}" data-video-claro="{% url 'archivo_publico' 'tutorial' 0 %}"{% if sitio.video_tutorial_oscuro %} data-video-oscuro="{% url 'archivo_publico' 'tutorial-oscuro' 0 %}"{% endif %}></video>
 </dialog>
 {% endif %}
 {% endblock %}

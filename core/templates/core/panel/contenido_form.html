@@ -2,6 +2,7 @@
 {% load ui %}
 {% block title %}{{ titulo }}{% endblock %}
 {% block content %}
+{% lugares_catalogo %}
 {% if seccion == 'sitio' %}{% url 'panel_contenido' as back %}{% else %}{% url 'panel_contenido_lista' seccion as back %}{% endif %}
 {% include 'core/partials/hero.html' with hero_icon='file' hero_title=obj|yesno:'Editar,Nuevo/a'|add:' · '|add:singular hero_sub=titulo back_url=back back_label=titulo variante='panel' estrecho=True %}
 <div class="container container--narrow lift">

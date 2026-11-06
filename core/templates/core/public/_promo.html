@@ -3,6 +3,6 @@
   <h3>{{ p.titulo }}</h3>
   <p>{{ p.descripcion }}</p>
   <p class="promo-dates">{% icon 'calendar' 16 %}<span>Solicítala del <strong>{{ p.fecha_inicio|date:"j M Y" }}</strong> al <strong>{{ p.fecha_fin|date:"j M Y" }}</strong></span></p>
-  {% if p.condiciones %}<p class="promo-cond"><span>Condiciones</span>{{ p.condiciones|linebreaksbr }}</p>{% endif %}
   {% if mostrar_ofertas %}{% for o in p.ofertas.all %}{% if o.publicado %}<a class="promo-link" href="{{ o.get_absolute_url }}">{% icon 'arrow-right' 14 %}{{ o.titulo }} · ${{ o.precio_persona|floatformat:"0g" }}</a>{% endif %}{% endfor %}{% endif %}
+  <a class="btn btn-sm promo-ver" href="{{ p.get_absolute_url }}">Ver promoción{% icon 'arrow-right' 16 %}<span class="sr-only">: {{ p.titulo }}</span></a>
 </article>

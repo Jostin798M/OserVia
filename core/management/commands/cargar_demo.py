@@ -71,11 +71,23 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--reiniciar', action='store_true', help='Borra los datos de negocio antes de cargar.')
+        parser.add_argument('--solo-tutorial', action='store_true',
+                            help='Reemplaza los videos tutoriales por los incluidos en el repositorio.')
+        parser.add_argument('--solo-hospedaje', action='store_true',
+                            help='Agrega el servicio y las ofertas de hospedaje de ejemplo a una base que ya tiene datos.')
         parser.add_argument('--claves-aleatorias', metavar='ARCHIVO',
                             help='Para sitios publicados: genera contraseñas fuertes y las guarda en ARCHIVO.')
 
     @transaction.atomic
     def handle(self, *args, **opts):
+        if opts['solo_tutorial']:
+            self.tutoriales(ContenidoSitio.actual(), reemplazar=True)
+            self.stdout.write(self.style.SUCCESS('Videos tutoriales actualizados.'))
+            return
+        if opts['solo_hospedaje']:
+            self.hospedajes(timezone.localdate())
+            self.stdout.write(self.style.SUCCESS('Hospedajes de ejemplo listos.'))
+            return
         if opts['reiniciar']:
             for M in (Abono, Comprobante, Cita, Consulta, Expediente, SolicitudViaje, Oferta, Promocion, Servicio,
                       Beneficio, PreguntaFrecuente, Publicacion):
@@ -140,16 +152,14 @@ class Command(BaseCommand):
         sitio.vision = ('Ser la agencia de referencia en Guayaquil para quienes viajan por primera vez, reconocida por '
                         'su transparencia y su seguimiento personalizado.')
         sitio.save()
-        # Video tutorial incluido en el repositorio (RS-04.3)
-        video = Path(__file__).resolve().parents[2] / 'demo' / 'tutorial.mp4'
-        if video.exists() and not sitio.video_tutorial:
-            sitio.video_tutorial.save('tutorial.mp4', ContentFile(video.read_bytes()), save=True)
+        self.tutoriales(sitio)
 
         for i, (t, d, ic) in enumerate([
             ('Asesoría de visas', 'Schengen, Estados Unidos, Canadá, Reino Unido y más. Revisión de documentos, '
              'preparación de la cita y entrevista simulada.', 'passport'),
             ('Boletería aérea', 'Cotizamos, reservamos y emitimos tu boleto, y te ayudamos con el check-in previo al viaje.', 'plane'),
             ('Paquetes turísticos', 'Vuelo, hotel, traslados y actividades en un solo plan, con acompañamiento hasta tu regreso.', 'suitcase'),
+            ('Hospedaje', 'Reservamos tu alojamiento según el destino, las fechas y las personas que viajan.', 'bed'),
             ('Seguros de viaje', 'Coberturas médicas y de asistencia según el destino y los requisitos consulares.', 'shield'),
         ]):
             Servicio.objects.create(titulo=t, descripcion=d, icono=ic, orden=i)
@@ -226,12 +236,45 @@ class Command(BaseCommand):
                 condiciones='Precio por persona en habitación doble. Reserva con abono; saldo antes de la emisión.',
                 incluye_seguro=seguro, promocion=promo)
 
+        self.hospedajes(hoy)
+
         Publicacion.objects.create(titulo='¡Nueva oficina en el centro de Guayaquil!', texto='Te esperamos en Tungurahua y Hurtado.',
                                    imagen=ContentFile(png(8, 6, (26, 79, 156)), name='oficina.png'))
         Publicacion.objects.create(titulo='Viajeros felices en Panamá', texto='Gracias por confiar en nosotros.',
                                    imagen=ContentFile(png(8, 6, (18, 128, 74)), name='panama.png'))
 
     # ------------------------------------------------------------------ Casos de ejemplo
+    def tutoriales(self, sitio, reemplazar=False):
+        """Videos tutoriales incluidos en el repositorio (RS-04.3), uno por tema."""
+        carpeta = Path(__file__).resolve().parents[2] / 'demo'
+        for campo, archivo in (('video_tutorial', 'tutorial.mp4'), ('video_tutorial_oscuro', 'tutorial-oscuro.mp4')):
+            ruta = carpeta / archivo
+            actual = getattr(sitio, campo)
+            if ruta.exists() and (reemplazar or not actual):
+                anterior = actual.name
+                actual.save(archivo, ContentFile(ruta.read_bytes()), save=True)
+                if anterior:
+                    actual.storage.delete(anterior)
+
+    def hospedajes(self, hoy):
+        Servicio.objects.get_or_create(titulo='Hospedaje', defaults={
+            'descripcion': 'Reservamos tu alojamiento según el destino, las fechas y las personas que viajan.',
+            'icono': 'bed', 'orden': 3})
+        for titulo, destino, noches, entrada, precio, seguro in [
+            ('Hotel Casco Viejo', 'Ciudad de Panamá, Panamá', 3, 30, '210', False),
+            ('Resort Playa Blanca', 'Playa Blanca, Panamá', 4, 45, '480', True),
+            ('Hotel Centro Histórico', 'Cartagena, Colombia', 5, 60, '395', False),
+        ]:
+            if Oferta.objects.filter(tipo='hospedaje', titulo=titulo).exists():
+                continue
+            Oferta.objects.create(
+                tipo='hospedaje', titulo=titulo, descripcion=f'Estadía de {noches} noches en {destino}.', destino=destino,
+                fecha_salida=hoy + timedelta(days=entrada), fecha_regreso=hoy + timedelta(days=entrada + noches),
+                duracion_dias=noches, precio_persona=Decimal(precio),
+                servicios_incluidos='Alojamiento\nDesayuno diario\nWi-Fi' + ('\nSeguro de viaje' if seguro else ''),
+                condiciones='Precio por persona en habitación doble para toda la estadía. Sujeto a disponibilidad.',
+                incluye_seguro=seguro)
+
     def casos(self, hoy):
         c, a, adm = self.cliente, self.asesora, self.admin
         base = {'nombre': 'Jostin Mora', 'cedula': '0912345678', 'email': c.email, 'telefono': '+593 99 123 4567'}

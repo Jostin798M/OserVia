@@ -4,6 +4,7 @@
 {% block content %}
 {% url 'expedientes' as back %}
 {% if e.es_visa %}{% include 'core/partials/hero.html' with hero_icon='passport' variante='visa' hero_title=e.titulo hero_sub='Expediente '|add:e.codigo back_url=back back_label='Mis expedientes' %}
+{% elif e.tipo == 'hospedaje' %}{% include 'core/partials/hero.html' with hero_icon='bed' hero_title=e.titulo hero_sub='Expediente '|add:e.codigo back_url=back back_label='Mis expedientes' %}
 {% elif e.tipo == 'paquete' %}{% include 'core/partials/hero.html' with hero_icon='suitcase' hero_title=e.titulo hero_sub='Expediente '|add:e.codigo back_url=back back_label='Mis expedientes' %}
 {% else %}{% include 'core/partials/hero.html' with hero_icon='plane' hero_title=e.titulo hero_sub='Expediente '|add:e.codigo back_url=back back_label='Mis expedientes' %}{% endif %}
 
@@ -22,7 +23,7 @@
         <dl class="dl">
           <div><dt>Titular</dt><dd>{{ e.nombre }}</dd></div>
           <div><dt>Documento</dt><dd>{{ e.documento_identidad }}</dd></div>
-          <div><dt>Asesor responsable</dt><dd>{% if e.asesor %}{{ e.asesor.get_full_name|default:e.asesor.email }}{% else %}Por asignar{% endif %}</dd></div>
+          <div><dt>Asesor responsable</dt><dd>{% if e.asesor %}{{ e.asesor|nombre }}{% else %}Por asignar{% endif %}</dd></div>
           {% if e.es_visa %}<div><dt>País de destino</dt><dd>{{ e.pais }}</dd></div><div><dt>Tipo de visa</dt><dd>{{ e.tipo_visa }}</dd></div>{% if e.pasaporte %}<div><dt>Pasaporte</dt><dd>{{ e.pasaporte }}</dd></div>{% endif %}{% endif %}
           <div><dt>Última actualización</dt><dd>{{ e.actualizado|date:"j M Y, H:i" }}</dd></div>
         </dl>
@@ -93,11 +94,11 @@
       </div></section>
       {% endif %}
 
-      {% if e.tipo == 'paquete' %}
+      {% if e.tipo == 'paquete' or e.tipo == 'hospedaje' %}
       <section class="card" aria-labelledby="t-paq"><div class="card-body">
-        <h3 id="t-paq" class="h-card">Tu paquete</h3>
+        <h3 id="t-paq" class="h-card">{% if e.tipo == 'hospedaje' %}Tu hospedaje{% else %}Tu paquete{% endif %}</h3>
         <dl class="dl">
-          <div><dt>Paquete</dt><dd>{{ e.paquete_nombre }}</dd></div>
+          <div><dt>{% if e.tipo == 'hospedaje' %}Hospedaje{% else %}Paquete{% endif %}</dt><dd>{{ e.paquete_nombre }}</dd></div>
           <div><dt>Destino</dt><dd>{{ e.destino }}</dd></div>
           <div><dt>Fechas</dt><dd>{{ e.fecha_salida|date:"j M Y" }} – {{ e.fecha_regreso|date:"j M Y" }}</dd></div>
         </dl>

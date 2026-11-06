@@ -192,7 +192,7 @@ def panel_expediente_nuevo(request):
                         'telefono': solicitud.telefono, 'documento_identidad': solicitud.cedula, 'email': solicitud.email,
                         'destino': solicitud.destino, 'fecha_salida': solicitud.fecha_salida,
                         'fecha_regreso': solicitud.fecha_regreso, 'asesor': solicitud.asesor_id,
-                        'paquete_nombre': solicitud.oferta_nombre if solicitud.tipo == 'paquete' else ''})
+                        'paquete_nombre': solicitud.oferta_nombre if solicitud.tipo in ('paquete', 'hospedaje') else ''})
         aceptada = solicitud.cotizaciones.filter(estado='aceptada').first()
         if aceptada:
             inicial.update({'precio_total': aceptada.precio_total, 'servicios_incluidos': aceptada.servicios_incluidos})
@@ -499,7 +499,7 @@ def panel_cuenta_estado(request, pk):
 # ==================================================================== Contenido público (RS-03.1)
 
 CONTENIDO = {
-    'ofertas': (Oferta, OfertaForm, 'Ofertas de vuelos y paquetes', 'Oferta'),
+    'ofertas': (Oferta, OfertaForm, 'Ofertas de vuelos, paquetes y hospedaje', 'Oferta'),
     'promociones': (Promocion, PromocionForm, 'Promociones', 'Promoción'),
     'servicios': (Servicio, ServicioForm, 'Servicios', 'Servicio'),
     'beneficios': (Beneficio, BeneficioForm, '¿Por qué viajar con nosotros?', 'Beneficio'),

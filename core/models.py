@@ -29,7 +29,7 @@ def ruta_publica(instance, filename):
 
 
 ICONOS = [
-    ('passport', 'Pasaporte'), ('plane', 'Avión'), ('takeoff', 'Despegue'), ('suitcase', 'Maleta'),
+    ('passport', 'Pasaporte'), ('plane', 'Avión'), ('takeoff', 'Despegue'), ('suitcase', 'Maleta'), ('bed', 'Hospedaje'),
     ('shield', 'Escudo'), ('globe', 'Mundo'), ('headset', 'Atención'), ('star', 'Estrella'),
     ('users', 'Personas'), ('calendar', 'Calendario'), ('clock', 'Reloj'), ('check-circle', 'Verificado'),
 ]
@@ -84,7 +84,8 @@ class ContenidoSitio(models.Model):
     horario = models.CharField('horario de atención', max_length=120, default='Lunes a viernes, 09:00 – 18:00')
     instagram = models.URLField('Instagram', blank=True)
     facebook = models.URLField('Facebook', blank=True)
-    video_tutorial = models.FileField('video tutorial (MP4/WebM)', upload_to=ruta_publica, blank=True)
+    video_tutorial = models.FileField('video tutorial, tema claro (MP4/WebM)', upload_to=ruta_publica, blank=True)
+    video_tutorial_oscuro = models.FileField('video tutorial, tema oscuro (MP4/WebM)', upload_to=ruta_publica, blank=True)
     actualizado = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -171,6 +172,9 @@ class Promocion(Publicable):
     def __str__(self):
         return self.titulo
 
+    def get_absolute_url(self):
+        return reverse('promocion', args=[self.pk])
+
     @property
     def vigente(self):
         hoy = timezone.localdate()
@@ -178,10 +182,11 @@ class Promocion(Publicable):
 
 
 class Oferta(Publicable):
-    """Oferta de vuelo o paquete turístico publicada por la agencia (RS-03.1, RS-05.7)."""
+    """Oferta de vuelo, paquete turístico u hospedaje publicada por la agencia (RS-03.1, RS-05.7)."""
     class Tipo(models.TextChoices):
         VUELO = 'vuelo', 'Vuelo'
         PAQUETE = 'paquete', 'Paquete turístico'
+        HOSPEDAJE = 'hospedaje', 'Hospedaje'
 
     tipo = models.CharField('tipo', max_length=10, choices=Tipo.choices)
     codigo = models.CharField('código', max_length=12, unique=True, editable=False, blank=True)
@@ -213,12 +218,17 @@ class Oferta(Publicable):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if not self.codigo:
-            prefijo = 'VUE' if self.tipo == self.Tipo.VUELO else 'PAQ'
+            prefijo = {self.Tipo.VUELO: 'VUE', self.Tipo.PAQUETE: 'PAQ', self.Tipo.HOSPEDAJE: 'HOS'}[self.tipo]
             self.codigo = f'{prefijo}-{self.pk:04d}'
             super().save(update_fields=['codigo'])
 
     def get_absolute_url(self):
         return reverse('oferta', args=[self.codigo])
+
+    @property
+    def noches(self):
+        """En un hospedaje, fecha_salida es la entrada y fecha_regreso la salida."""
+        return (self.fecha_regreso - self.fecha_salida).days if self.fecha_regreso else None
 
     @property
     def lista_servicios(self):
@@ -305,6 +315,7 @@ class SolicitudViaje(AsignableMixin):
     class Tipo(models.TextChoices):
         VUELO = 'vuelo', 'Vuelo'
         PAQUETE = 'paquete', 'Paquete turístico'
+        HOSPEDAJE = 'hospedaje', 'Hospedaje'
 
     class Trayecto(models.TextChoices):
         IDA = 'ida', 'Solo ida'
@@ -367,7 +378,10 @@ class SolicitudViaje(AsignableMixin):
 
     @property
     def subtitulo(self):
-        p = 'pasajero' if self.pasajeros == 1 else 'pasajeros'
+        if self.tipo == self.Tipo.HOSPEDAJE:
+            p = 'huésped' if self.pasajeros == 1 else 'huéspedes'
+        else:
+            p = 'pasajero' if self.pasajeros == 1 else 'pasajeros'
         extra = f' · {self.get_trayecto_display()}' if self.trayecto else ''
         return f'{self.get_tipo_display()}{extra} · {self.pasajeros} {p}'
 
@@ -459,6 +473,7 @@ class Expediente(AsignableMixin):
         VISA = 'visa', 'Asesoría de visa'
         VUELO = 'vuelo', 'Boletería (vuelo)'
         PAQUETE = 'paquete', 'Paquete turístico'
+        HOSPEDAJE = 'hospedaje', 'Hospedaje'
 
     class Estado(models.TextChoices):
         EN_CURSO = 'en_curso', 'En curso'
@@ -500,8 +515,8 @@ class Expediente(AsignableMixin):
                                  default=Resultado.NO_REGISTRADO)
     resultado_detalle = models.TextField('detalle del resultado', blank=True)
     resultado_fecha = models.DateField('fecha en que se recibió el resultado', null=True, blank=True)
-    # Paquete
-    paquete_nombre = models.CharField('paquete contratado', max_length=120, blank=True)
+    # Paquete u hospedaje
+    paquete_nombre = models.CharField('paquete u hospedaje contratado', max_length=120, blank=True)
     destino = models.CharField('destino', max_length=120, blank=True)
     fecha_salida = models.DateField('fecha de salida', null=True, blank=True)
     fecha_regreso = models.DateField('fecha de regreso', null=True, blank=True)
@@ -534,6 +549,8 @@ class Expediente(AsignableMixin):
             return f'Visa {self.tipo_visa.lower()} · {self.pais}'.strip(' ·')
         if self.tipo == self.Tipo.PAQUETE:
             return self.paquete_nombre or self.destino or 'Paquete turístico'
+        if self.tipo == self.Tipo.HOSPEDAJE:
+            return self.paquete_nombre or self.destino or 'Hospedaje'
         v = self.vuelos.first()
         return f'{v.origen} → {v.destino}' if v else 'Boletería aérea'
 

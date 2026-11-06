@@ -2,8 +2,9 @@
 {% load ui %}
 {% block title %}Solicitar cotización{% endblock %}
 {% block content %}
+{% lugares_catalogo %}
 {% url 'mis_solicitudes' as back %}
-{% if oferta %}{% include 'core/partials/hero.html' with hero_icon='takeoff' hero_title='Solicitar esta oferta' hero_sub='Completa tus datos y tu asesor confirmará el precio final.' estrecho=True back_url=oferta.get_absolute_url back_label='Volver a la oferta' %}{% else %}{% include 'core/partials/hero.html' with hero_icon='takeoff' hero_title='Solicitar cotización' hero_sub='Vuelos y paquetes turísticos. Un asesor te enviará la propuesta.' estrecho=True back_url=back back_label='Mis cotizaciones' %}{% endif %}
+{% if oferta %}{% include 'core/partials/hero.html' with hero_icon='takeoff' hero_title='Solicitar esta oferta' hero_sub='Completa tus datos y tu asesor confirmará el precio final.' estrecho=True back_url=oferta.get_absolute_url back_label='Volver a la oferta' %}{% else %}{% include 'core/partials/hero.html' with hero_icon='takeoff' hero_title='Solicitar cotización' hero_sub='Vuelos, paquetes turísticos y hospedaje. Un asesor te enviará la propuesta.' estrecho=True back_url=back back_label='Mis cotizaciones' %}{% endif %}
 
 <div class="container container--narrow lift">
   <form method="post" class="card card-elevated" novalidate data-submit-once>
@@ -24,7 +25,7 @@
       </div>
       {% else %}
       <div class="alert" style="margin-bottom:24px">{% icon 'star' 20 %}
-        <div><strong>Sin oferta seleccionada.</strong> Puedes elegir una en <a href="{% url 'vuelos' %}">Vuelos</a> o <a href="{% url 'paquetes' %}">Paquetes</a>, o describir tu viaje aquí.</div>
+        <div><strong>Sin oferta seleccionada.</strong> Puedes elegir una en <a href="{% url 'vuelos' %}">Vuelos</a> o <a href="{% url 'paquetes' %}">Paquetes</a> o <a href="{% url 'hospedaje' %}">Hospedaje</a>, o describir tu viaje aquí.</div>
       </div>
       {% endif %}
       {% include 'core/partials/form_errors.html' %}
@@ -32,7 +33,7 @@
       <div class="form-section">
         <div class="form-section-title"><span class="num">1</span>Tu viaje</div>
         <div class="segmented" role="radiogroup" aria-label="Tipo de servicio" style="margin-bottom:18px">
-          {% for radio in form.tipo %}<label>{{ radio.tag }}<span>{% if radio.data.value == 'paquete' %}{% icon 'suitcase' 18 %}{% else %}{% icon 'plane' 18 %}{% endif %}{{ radio.choice_label }}</span></label>{% endfor %}
+          {% for radio in form.tipo %}<label>{{ radio.tag }}<span>{% if radio.data.value == 'paquete' %}{% icon 'suitcase' 18 %}{% elif radio.data.value == 'hospedaje' %}{% icon 'bed' 18 %}{% else %}{% icon 'plane' 18 %}{% endif %}{{ radio.choice_label }}</span></label>{% endfor %}
         </div>
         <div data-show-when="tipo=vuelo">{% include 'core/partials/radios.html' with field=form.trayecto label='Tipo de viaje' %}</div>
 
@@ -41,16 +42,11 @@
           <button type="button" class="route-swap" data-show-when="tipo=vuelo" data-swap="{{ form.origen.id_for_label }},{{ form.destino.id_for_label }}" aria-label="Intercambiar origen y destino">{% icon 'swap' 18 %}</button>
           {% include 'core/partials/field.html' with field=form.destino icon='globe' %}
         </div>
-        <datalist id="ciudades">
-          <option value="Guayaquil (GYE)"><option value="Quito (UIO)"><option value="Cuenca (CUE)"><option value="Madrid (MAD)">
-          <option value="Miami (MIA)"><option value="Nueva York (JFK)"><option value="Ciudad de Panamá (PTY)"><option value="Bogotá (BOG)">
-          <option value="Cancún (CUN)"><option value="Lima (LIM)"><option value="Punta Cana (PUJ)"><option value="Toronto (YYZ)">
-        </datalist>
 
         <div class="grid grid-3" style="margin-top:16px">
-          {% include 'core/partials/field.html' with field=form.fecha_salida label='Salida' %}
-          <div data-show-when="tipo=paquete|trayecto=ida_vuelta">{% include 'core/partials/field.html' with field=form.fecha_regreso label='Regreso' %}</div>
-          <div class="field">
+          <div data-etiqueta-hospedaje="Entrada">{% include 'core/partials/field.html' with field=form.fecha_salida label='Salida' %}</div>
+          <div data-show-when="tipo=paquete|tipo=hospedaje|trayecto=ida_vuelta" data-etiqueta-hospedaje="Salida">{% include 'core/partials/field.html' with field=form.fecha_regreso label='Regreso' %}</div>
+          <div class="field" data-etiqueta-hospedaje="Huéspedes">
             <label class="label" for="{{ form.pasajeros.id_for_label }}">Pasajeros <span class="req-mark" aria-hidden="true">*</span></label>
             <div class="stepper" data-stepper>
               <button type="button" data-step="-1" aria-label="Quitar pasajero">{% icon 'minus' 18 %}</button>

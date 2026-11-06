@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from core import servicios
 from core.management.commands.cargar_demo import pdf, png
-from core.models import (Abono, Asignacion, CambioEtapa, Cita, Comprobante, Consulta, Cotizacion, DocumentoRequerido,
+from core.models import (ContenidoSitio, Abono, Asignacion, CambioEtapa, Cita, Comprobante, Consulta, Cotizacion, DocumentoRequerido,
                          Expediente, Oferta, Perfil, Promocion, SolicitudViaje, VueloContratado)
 
 MEDIA = tempfile.mkdtemp()
@@ -628,3 +628,289 @@ class DespliegueTest(TestCase):
             campo = ArchivoField(max_mb=10)
         self.assertEqual(campo.max_mb, 4)
         self.assertIn('4 MB', campo.help_text)
+
+
+class HospedajeTest(TestCase):
+    """El hospedaje sigue el mismo recorrido que vuelos y paquetes: oferta, cotización y expediente."""
+
+    def setUp(self):
+        self.user = User.objects.create_user('cli@x.com', 'cli@x.com', 'clave-Segura1', first_name='Ana', last_name='Paz')
+        Perfil.objects.get_or_create(usuario=self.user)
+        self.entrada = HOY() + timedelta(days=10)
+        self.hotel = Oferta.objects.create(
+            tipo='hospedaje', titulo='Hotel Sol', descripcion='d', destino='Cartagena', fecha_salida=self.entrada,
+            fecha_regreso=self.entrada + timedelta(days=3), precio_persona=Decimal('300'), servicios_incluidos='Desayuno',
+            condiciones='c')
+        self.otro = Oferta.objects.create(
+            tipo='hospedaje', titulo='Hotel Luna', descripcion='d', destino='Panamá', fecha_salida=self.entrada,
+            fecha_regreso=self.entrada + timedelta(days=1), precio_persona=Decimal('900'), servicios_incluidos='x',
+            condiciones='c')
+
+    def datos(self, **extra):
+        return {'tipo': 'hospedaje', 'destino': 'Cartagena', 'fecha_salida': self.entrada.isoformat(),
+                'fecha_regreso': (self.entrada + timedelta(days=2)).isoformat(), 'pasajeros': 2, 'seguro': 'False',
+                'nombre': 'Ana Paz', 'cedula': '0912345678', 'email': 'cli@x.com', 'telefono': '0991234567', **extra}
+
+    def test_codigo_y_noches(self):
+        self.assertTrue(self.hotel.codigo.startswith('HOS-'))
+        self.assertEqual(self.hotel.noches, 3)
+
+    def test_pagina_publica_y_filtros(self):
+        r = self.client.get(reverse('hospedaje'))
+        self.assertContains(r, 'Hotel Sol')
+        self.assertContains(r, 'Hotel Luna')
+        r = self.client.get(reverse('hospedaje'), {'destino': 'carta', 'precio_max': '500'})
+        self.assertContains(r, 'Hotel Sol')
+        self.assertNotContains(r, 'Hotel Luna')
+        r = self.client.get(reverse('hospedaje'), {'precio_max': '1'})
+        self.assertContains(r, 'No encontramos hospedajes')
+
+    def test_no_aparece_en_vuelos_ni_paquetes(self):
+        self.assertNotContains(self.client.get(reverse('vuelos')), 'Hotel Sol')
+        self.assertNotContains(self.client.get(reverse('paquetes')), 'Hotel Sol')
+
+    def test_detalle_de_oferta(self):
+        r = self.client.get(self.hotel.get_absolute_url())
+        self.assertContains(r, 'Entrada')
+        self.assertContains(r, '3 noches')
+
+    def test_cotizacion_con_oferta_y_sin_vuelo(self):
+        self.client.force_login(self.user)
+        r = self.client.post(f"{reverse('cotizar')}?oferta={self.hotel.codigo}",
+                             self.datos(origen='GYE', trayecto='ida', clase='economica'))
+        self.assertEqual(r.status_code, 302)
+        s = SolicitudViaje.objects.get()
+        self.assertEqual((s.tipo, s.origen, s.trayecto, s.clase, s.oferta_codigo), ('hospedaje', '', '', '', self.hotel.codigo))
+        self.assertIn('2 huéspedes', s.subtitulo)
+
+    def test_cotizacion_exige_al_menos_una_noche(self):
+        self.client.force_login(self.user)
+        sin_salida = self.client.post(reverse('cotizar'), self.datos(fecha_regreso=''))
+        self.assertIn('fecha_regreso', sin_salida.context['form'].errors)
+        misma_fecha = self.client.post(reverse('cotizar'), self.datos(fecha_regreso=self.entrada.isoformat()))
+        self.assertIn('fecha_regreso', misma_fecha.context['form'].errors)
+        self.assertFalse(SolicitudViaje.objects.exists())
+
+    def test_formulario_de_oferta_calcula_noches(self):
+        from core.forms import OfertaForm
+        d = {'tipo': 'hospedaje', 'titulo': 'H', 'descripcion': 'd', 'origen': 'GYE', 'destino': 'Quito',
+             'fecha_salida': self.entrada, 'fecha_regreso': self.entrada + timedelta(days=4), 'precio_persona': '100',
+             'servicios_incluidos': 'x', 'condiciones': 'c', 'orden': 0}
+        form = OfertaForm(d)
+        self.assertTrue(form.is_valid(), form.errors)
+        o = form.save()
+        self.assertEqual((o.duracion_dias, o.origen), (4, ''))
+        self.assertIn('fecha_regreso', OfertaForm({**d, 'fecha_regreso': self.entrada}).errors)
+
+    def test_expediente_de_hospedaje(self):
+        e = Expediente.objects.create(usuario=self.user, tipo='hospedaje', nombre='Ana', telefono='0991234567',
+                                      paquete_nombre='Hotel Sol', destino='Cartagena', fecha_salida=self.entrada,
+                                      fecha_regreso=self.entrada + timedelta(days=3))
+        self.assertEqual(e.titulo, 'Hotel Sol')
+        self.client.force_login(self.user)
+        self.assertContains(self.client.get(e.get_absolute_url()), 'Tu hospedaje')
+
+
+class LugaresTest(TestCase):
+    """Filtro de origen y autocompletado de lugares."""
+
+    def setUp(self):
+        base = {'descripcion': 'd', 'fecha_salida': HOY() + timedelta(days=5), 'precio_persona': Decimal('100'),
+                'servicios_incluidos': 'x', 'condiciones': 'c'}
+        Oferta.objects.create(tipo='vuelo', titulo='Vuelo Gye', origen='Guayaquil (GYE)', destino='Ciudad de Panamá (PTY)',
+                              duracion_horas=2, **base)
+        Oferta.objects.create(tipo='vuelo', titulo='Vuelo Uio', origen='Quito (UIO)', destino='Bogotá (BOG)',
+                              duracion_horas=2, **base)
+        Oferta.objects.create(tipo='hospedaje', titulo='Hotel Sur', destino='Cartagena, Colombia',
+                              fecha_regreso=HOY() + timedelta(days=7), **base)
+
+    def test_filtra_por_origen(self):
+        r = self.client.get(reverse('vuelos'), {'origen': 'Guayaquil (GYE)'})
+        self.assertContains(r, 'Vuelo Gye')
+        self.assertNotContains(r, 'Vuelo Uio')
+
+    def test_origen_y_destino_se_combinan(self):
+        r = self.client.get(reverse('vuelos'), {'origen': 'Guayaquil', 'destino': 'Bogota'})
+        self.assertContains(r, 'No encontramos vuelos')
+
+    def test_no_distingue_tildes_ni_mayusculas(self):
+        for q in ('panama', 'PANAMÁ', 'PTY', 'Ciudad de Panamá (PTY)'):
+            self.assertContains(self.client.get(reverse('vuelos'), {'destino': q}), 'Vuelo Gye', msg_prefix=q)
+
+    def test_sugerencias_priorizan_lugares_con_ofertas(self):
+        from core.lugares import sugerencias
+        lugares = sugerencias(Oferta.objects.filter(tipo='vuelo'), 'origen')
+        self.assertEqual({l['valor'] for l in lugares[:2]}, {'Guayaquil (GYE)', 'Quito (UIO)'})
+        self.assertEqual(lugares[0]['ofertas'], 1)
+        self.assertEqual(len([l for l in lugares if 'Guayaquil' in l['valor']]), 1)
+
+    def test_lugar_fuera_del_catalogo_tambien_se_sugiere(self):
+        from core.lugares import sugerencias
+        Oferta.objects.filter(titulo='Hotel Sur').update(destino='Playa Blanca, Panamá')
+        lugares = sugerencias(Oferta.objects.filter(tipo='hospedaje'), 'destino', con_codigo=False)
+        self.assertEqual((lugares[0]['valor'], lugares[0]['ofertas']), ('Playa Blanca, Panamá', 1))
+
+    def test_hospedaje_sugiere_ciudad_sin_codigo_y_filtra(self):
+        r = self.client.get(reverse('hospedaje'))
+        self.assertContains(r, 'Cartagena, Colombia')
+        self.assertContains(self.client.get(reverse('hospedaje'), {'destino': 'cartagena'}), 'Hotel Sur')
+        self.assertContains(self.client.get(reverse('hospedaje'), {'destino': 'Madrid, España'}), 'No encontramos hospedajes')
+
+
+class BuscarPaquetesTest(TestCase):
+    def setUp(self):
+        base = {'tipo': 'paquete', 'descripcion': 'd', 'servicios_incluidos': 'x', 'condiciones': 'c'}
+        self.salida = HOY() + timedelta(days=5)
+        Oferta.objects.create(titulo='Plan Corto', destino='Ciudad de Panamá, Panamá', fecha_salida=self.salida,
+                              fecha_regreso=self.salida + timedelta(days=3), duracion_dias=4,
+                              precio_persona=Decimal('650'), **base)
+        Oferta.objects.create(titulo='Plan Largo', destino='Cartagena, Colombia', fecha_salida=self.salida + timedelta(days=9),
+                              fecha_regreso=self.salida + timedelta(days=17), duracion_dias=9,
+                              precio_persona=Decimal('1450'), **base)
+
+    def buscar(self, **filtros):
+        return self.client.get(reverse('paquetes'), filtros)
+
+    def test_cada_filtro_y_su_combinacion(self):
+        for filtros in ({'destino': 'panama'}, {'fecha': self.salida.isoformat()}, {'precio_max': '700'}, {'duracion_max': '5'}):
+            r = self.buscar(**filtros)
+            self.assertContains(r, 'Plan Corto', msg_prefix=str(filtros))
+            self.assertNotContains(r, 'Plan Largo', msg_prefix=str(filtros))
+        self.assertContains(self.buscar(destino='cartagena', precio_max='700'), 'No encontramos paquetes')
+
+    def test_sin_filtros_muestra_todo_y_sugiere_lugares(self):
+        r = self.buscar()
+        self.assertContains(r, 'Plan Corto')
+        self.assertContains(r, 'Plan Largo')
+        self.assertContains(r, 'lugares-destino')
+
+
+class PromocionDetalleTest(TestCase):
+    def setUp(self):
+        self.p = Promocion.objects.create(titulo='Promo Sol', descripcion='Descuento', condiciones='Solo en temporada baja',
+                                          fecha_inicio=HOY() - timedelta(days=1), fecha_fin=HOY() + timedelta(days=5))
+        self.o = Oferta.objects.create(tipo='paquete', titulo='Plan Sol', descripcion='d', destino='Quito',
+                                       fecha_salida=HOY() + timedelta(days=9), fecha_regreso=HOY() + timedelta(days=11),
+                                       duracion_dias=3, precio_persona=Decimal('100'), servicios_incluidos='x',
+                                       condiciones='c', promocion=self.p)
+
+    def test_tarjeta_no_muestra_condiciones_y_enlaza_al_detalle(self):
+        for url in (reverse('inicio'), reverse('promociones')):
+            r = self.client.get(url)
+            self.assertContains(r, 'Promo Sol')
+            self.assertNotContains(r, 'Solo en temporada baja')
+            self.assertContains(r, self.p.get_absolute_url())
+
+    def test_detalle_muestra_condiciones_y_ofertas(self):
+        r = self.client.get(self.p.get_absolute_url())
+        self.assertContains(r, 'Solo en temporada baja')
+        self.assertContains(r, 'Plan Sol')
+
+    def test_promocion_vencida_o_no_publicada_no_se_abre(self):
+        url = self.p.get_absolute_url()
+        Promocion.objects.filter(pk=self.p.pk).update(fecha_fin=HOY() - timedelta(days=1))
+        self.assertEqual(self.client.get(url).status_code, 404)
+        Promocion.objects.filter(pk=self.p.pk).update(fecha_fin=HOY() + timedelta(days=5), publicado=False)
+        self.assertEqual(self.client.get(url).status_code, 404)
+
+    def test_oferta_enlaza_a_las_condiciones(self):
+        self.assertContains(self.client.get(self.o.get_absolute_url()), self.p.get_absolute_url())
+
+
+class HospedajePanelesTest(TestCase):
+    """Cliente, administrador y asesor pueden trabajar un hospedaje en cada pantalla."""
+
+    def setUp(self):
+        self.cliente = User.objects.create_user('c@x.com', 'c@x.com', 'clave-Segura1', first_name='Ana', last_name='Paz')
+        self.admin = User.objects.create_user('a@admin.com', 'a@admin.com', 'clave-Segura1', is_staff=True)
+        self.asesor = User.objects.create_user('s@admin.com', 's@admin.com', 'clave-Segura1', is_staff=True)
+        Perfil.objects.update_or_create(usuario=self.cliente, defaults={'rol': 'usuario'})
+        Perfil.objects.update_or_create(usuario=self.admin, defaults={'rol': 'admin'})
+        Perfil.objects.update_or_create(usuario=self.asesor, defaults={'rol': 'asesor'})
+        entrada = HOY() + timedelta(days=9)
+        self.oferta = Oferta.objects.create(tipo='hospedaje', titulo='Hotel Sol', descripcion='d', destino='Quito',
+                                            fecha_salida=entrada, fecha_regreso=entrada + timedelta(days=2),
+                                            precio_persona=Decimal('90'), servicios_incluidos='x', condiciones='c')
+        self.sol = SolicitudViaje.objects.create(usuario=self.cliente, tipo='hospedaje', destino='Hotel Sol (Quito)',
+                                                 fecha_salida=entrada, fecha_regreso=entrada + timedelta(days=2),
+                                                 pasajeros=2, nombre='Ana Paz', cedula='0912345678', email='c@x.com',
+                                                 telefono='0991234567', asesor=self.asesor)
+        self.exp = Expediente.objects.create(usuario=self.cliente, tipo='hospedaje', solicitud=self.sol, nombre='Ana Paz',
+                                             telefono='0991234567', paquete_nombre='Hotel Sol', destino='Quito',
+                                             fecha_salida=entrada, fecha_regreso=entrada + timedelta(days=2),
+                                             precio_total=Decimal('180'), asesor=self.asesor)
+
+    def _todas_abren(self, usuario, urls):
+        self.client.force_login(usuario)
+        for url in urls:
+            self.assertEqual(self.client.get(url).status_code, 200, url)
+
+    def test_cliente(self):
+        self._todas_abren(self.cliente, [reverse('dashboard'), reverse('mis_solicitudes'), self.sol.get_absolute_url(),
+                                         reverse('expedientes'), self.exp.get_absolute_url(), reverse('citas'), reverse('pagos'),
+                                         reverse('cotizar') + '?tipo=hospedaje', reverse('cotizar') + f'?oferta={self.oferta.codigo}'])
+        r = self.client.get(self.sol.get_absolute_url())
+        self.assertContains(r, 'Huéspedes')
+        self.assertNotContains(r, 'Pasajeros')
+
+    def test_panel_para_admin_y_asesor(self):
+        urls = [reverse('panel_inicio'), reverse('panel_solicitudes'), self.sol.get_panel_url(), reverse('panel_expedientes') + '?tipo=hospedaje',
+                self.exp.get_panel_url(), reverse('panel_expediente_editar', args=[self.exp.pk]), reverse('panel_pagos'), reverse('panel_agenda')]
+        self._todas_abren(self.admin, urls + [reverse('panel_contenido_lista', args=['ofertas']), reverse('panel_contenido_nuevo', args=['ofertas'])])
+        self._todas_abren(self.asesor, urls)
+
+    def test_solicitud_de_hospedaje_se_lee_con_sus_terminos(self):
+        self.client.force_login(self.asesor)
+        r = self.client.get(self.sol.get_panel_url())
+        for texto in ('Entrada', 'Huéspedes'):
+            self.assertContains(r, texto)
+        self.assertNotContains(r, 'Pasajeros')
+
+    def test_expediente_nuevo_desde_solicitud_propone_el_hospedaje(self):
+        self.client.force_login(self.asesor)
+        r = self.client.get(reverse('panel_expediente_nuevo') + f'?solicitud={self.sol.pk}')
+        self.assertEqual(r.context['form'].initial.get('tipo'), 'hospedaje')
+
+    def test_expediente_de_hospedaje_no_muestra_vuelos(self):
+        self.client.force_login(self.asesor)
+        self.assertNotContains(self.client.get(self.exp.get_panel_url()), 'Vuelos y boletos')
+
+    def test_radios_no_tienen_opcion_vacia(self):
+        self.client.force_login(self.admin)
+        self.assertNotContains(self.client.get(reverse('panel_expediente_nuevo')), 'Select an option')
+
+    def test_asistente_responde_sobre_hospedaje(self):
+        r = self.client.get(reverse('asistente'), {'q': '¿tienen hoteles?'})
+        self.assertEqual(r.json()['enlace'], reverse('hospedaje'))
+
+
+class TutorialPorTemaTest(TestCase):
+    def setUp(self):
+        self.sitio = ContenidoSitio.actual()
+        self.sitio.video_tutorial.save('a.mp4', ContentFile(b'\x00\x00\x00\x18ftypmp42claro'), save=False)
+        self.sitio.save()
+        self.addCleanup(self._limpiar)
+
+    def _limpiar(self):
+        self.sitio.refresh_from_db()
+        self.sitio.video_tutorial.delete(save=False)
+        self.sitio.video_tutorial_oscuro.delete(save=False)
+
+    def test_sin_video_oscuro_usa_el_claro(self):
+        r = self.client.get(reverse('inicio'))
+        self.assertContains(r, 'data-video-claro')
+        self.assertNotContains(r, 'data-video-oscuro')
+        self.assertEqual(self.client.get(reverse('archivo_publico', args=['tutorial-oscuro', 0])).status_code, 404)
+
+    def test_con_ambos_videos_ofrece_los_dos(self):
+        self.sitio.video_tutorial_oscuro.save('b.mp4', ContentFile(b'\x00\x00\x00\x18ftypmp42oscuro'), save=True)
+        self.assertContains(self.client.get(reverse('inicio')), 'data-video-oscuro')
+        r = self.client.get(reverse('archivo_publico', args=['tutorial-oscuro', 0]))
+        self.assertEqual(b''.join(r.streaming_content)[-6:], b'oscuro')
+
+
+class PantallasDeCargaTest(TestCase):
+    def test_inicio_de_sesion_incluye_la_carga_con_logo(self):
+        r = self.client.get(reverse('login'))
+        self.assertContains(r, 'data-carga-logo')
+        self.assertContains(r, 'data-inicio-sesion')

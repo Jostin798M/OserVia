@@ -1,9 +1,9 @@
 {% load ui %}<article class="offer">
   <div class="offer-top offer-top--{{ o.tipo }}">
-    <span class="offer-icon">{% if o.tipo == 'vuelo' %}{% icon 'plane' 22 %}{% else %}{% icon 'suitcase' 22 %}{% endif %}</span>
+    <span class="offer-icon">{% if o.tipo == 'vuelo' %}{% icon 'plane' 22 %}{% elif o.tipo == 'hospedaje' %}{% icon 'bed' 22 %}{% else %}{% icon 'suitcase' 22 %}{% endif %}</span>
     {% if o.promocion_vigente %}<span class="offer-promo">{% icon 'star' 14 %}{{ o.promocion_vigente.titulo }}</span>{% endif %}
     <h3>{{ o.titulo }}</h3>
-    <p>{% if o.tipo == 'vuelo' %}{{ o.origen }} → {{ o.destino }}{% else %}{{ o.destino }} · {{ o.duracion_dias }} día{{ o.duracion_dias|pluralize }}{% endif %}</p>
+    <p>{% if o.tipo == 'vuelo' %}{{ o.origen }} → {{ o.destino }}{% elif o.tipo == 'hospedaje' %}{{ o.destino }} · {{ o.noches }} noche{{ o.noches|pluralize }}{% else %}{{ o.destino }} · {{ o.duracion_dias }} día{{ o.duracion_dias|pluralize }}{% endif %}</p>
   </div>
   <div class="offer-body">
     <ul class="offer-meta">

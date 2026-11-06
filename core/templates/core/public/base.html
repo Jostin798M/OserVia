@@ -16,6 +16,7 @@
         <a href="{% url 'inicio' %}" {% if n == 'inicio' %}aria-current="page"{% endif %}>Inicio</a>
         <a href="{% url 'vuelos' %}" {% if n == 'vuelos' %}aria-current="page"{% endif %}>Vuelos</a>
         <a href="{% url 'paquetes' %}" {% if n == 'paquetes' %}aria-current="page"{% endif %}>Paquetes</a>
+        <a href="{% url 'hospedaje' %}" {% if n == 'hospedaje' %}aria-current="page"{% endif %}>Hospedaje</a>
         <a href="{% url 'visas' %}" {% if n == 'visas' %}aria-current="page"{% endif %}>Visas</a>
         <a href="{% url 'promociones' %}" {% if n == 'promociones' %}aria-current="page"{% endif %}>Promociones</a>
         <a href="{% url 'nosotros' %}" {% if n == 'nosotros' %}aria-current="page"{% endif %}>Nosotros</a>
@@ -37,6 +38,7 @@
         <a href="{% url 'inicio' %}">{% icon 'home' 18 %}Inicio</a>
         <a href="{% url 'vuelos' %}">{% icon 'plane' 18 %}Vuelos</a>
         <a href="{% url 'paquetes' %}">{% icon 'suitcase' 18 %}Paquetes turísticos</a>
+        <a href="{% url 'hospedaje' %}">{% icon 'bed' 18 %}Hospedaje</a>
         <a href="{% url 'visas' %}">{% icon 'passport' 18 %}Asesoría de visas</a>
         <a href="{% url 'promociones' %}">{% icon 'star' 18 %}Promociones</a>
         <a href="{% url 'nosotros' %}">{% icon 'users' 18 %}Nosotros</a>

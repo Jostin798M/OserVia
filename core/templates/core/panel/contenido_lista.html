@@ -16,7 +16,7 @@
         <span class="req-side">
           <span class="badge badge--{% if o.publicado %}success{% else %}neutral{% endif %}">{{ o.publicado|yesno:"Publicado,Oculto" }}</span>
           <form method="post" class="inline">{% csrf_token %}<input type="hidden" name="accion" value="publicar"><input type="hidden" name="id" value="{{ o.pk }}"><button class="btn btn-sm" type="submit">{{ o.publicado|yesno:"Retirar,Publicar" }}</button></form>
-          <form method="post" class="inline" onsubmit="return confirm('¿Eliminar definitivamente?')">{% csrf_token %}<input type="hidden" name="accion" value="eliminar"><input type="hidden" name="id" value="{{ o.pk }}"><button class="icon-btn icon-btn--sm" type="submit" aria-label="Eliminar" title="Eliminar">{% icon 'x' 14 %}</button></form>
+          <form method="post" class="inline" data-confirmar="¿Eliminar definitivamente?">{% csrf_token %}<input type="hidden" name="accion" value="eliminar"><input type="hidden" name="id" value="{{ o.pk }}"><button class="icon-btn icon-btn--sm" type="submit" aria-label="Eliminar" title="Eliminar">{% icon 'x' 14 %}</button></form>
         </span>
       </div>
       {% empty %}<div class="empty">{% include 'core/partials/empty_art.html' %}<h3>Sin elementos</h3><p>Crea el primero.</p></div>{% endfor %}

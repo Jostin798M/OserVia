@@ -2,14 +2,35 @@
 {% load ui %}
 {% block title %}Paquetes turísticos{% endblock %}
 {% block content %}
-{% include 'core/partials/hero.html' with hero_icon='suitcase' hero_title='Paquetes turísticos' hero_sub='Vuelo, alojamiento, traslados y actividades según cada paquete.' %}
+{% include 'core/partials/hero.html' with hero_icon='suitcase' hero_title='Paquetes turísticos' hero_sub='Vuelo, alojamiento, traslados y actividades según cada paquete. Combina los filtros que necesites.' %}
+{{ lugares_destino|json_script:"lugares-destino" }}
 <div class="container lift">
-  {% if ofertas %}
-    <div class="cards-grid">{% for o in ofertas %}{% include 'core/public/_oferta_card.html' %}{% endfor %}</div>
-  {% else %}
-    <div class="card"><div class="empty">{% include 'core/partials/empty_art.html' %}<h3>No hay paquetes publicados</h3>
-      <p>Cuéntanos a dónde quieres ir y te armamos un plan.</p>
-      <div class="actions"><a class="btn btn-primary" href="{% url 'cotizar' %}?tipo=paquete">Solicitar cotización</a></div></div></div>
-  {% endif %}
+  <form method="get" class="card card-elevated search-card" role="search" aria-label="Buscar paquetes">
+    <div class="card-body">
+      <div class="grid grid-4">
+        {% include 'core/partials/field.html' with field=form.destino icon='pin' %}
+        {% include 'core/partials/field.html' with field=form.fecha %}
+        {% include 'core/partials/field.html' with field=form.precio_max icon='dollar' %}
+        {% include 'core/partials/field.html' with field=form.duracion_max icon='clock' %}
+      </div>
+      <div class="form-actions" style="margin-top:16px">
+        {% if filtrando %}<a class="btn btn-ghost" href="{% url 'paquetes' %}">Limpiar filtros</a>{% endif %}
+        <button class="btn btn-primary" type="submit">{% icon 'search' 18 %}Buscar paquetes</button>
+      </div>
+    </div>
+  </form>
+
+  <section class="section" aria-live="polite">
+    {% if ofertas %}
+      <p class="muted small" style="margin-bottom:12px">{{ ofertas|length }} paquete{{ ofertas|length|pluralize }}{% if filtrando %} que cumple{{ ofertas|length|pluralize:"n" }} todos los filtros{% endif %}</p>
+      <div class="cards-grid">{% for o in ofertas %}{% include 'core/public/_oferta_card.html' %}{% endfor %}</div>
+    {% else %}
+      <div class="card"><div class="empty">{% include 'core/partials/empty_art.html' %}
+        <h3>{% if filtrando %}No encontramos paquetes con esos filtros{% else %}No hay paquetes publicados{% endif %}</h3>
+        <p>{% if filtrando %}Prueba con otro destino, otra fecha o un precio mayor. {% endif %}Cuéntanos a dónde quieres ir y te armamos un plan.</p>
+        <div class="actions"><a class="btn btn-primary" href="{% url 'cotizar' %}?tipo=paquete">{% icon 'send' 18 %}Solicitar cotización</a>{% if filtrando %}<a class="btn" href="{% url 'paquetes' %}">Ver todos los paquetes</a>{% endif %}</div>
+      </div></div>
+    {% endif %}
+  </section>
 </div>
 {% endblock %}

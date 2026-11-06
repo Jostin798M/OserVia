@@ -3,6 +3,8 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#f4f6fb">
 <script>(function(){try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<script>/* Si el navegador cancela la transición entre páginas, la navegación continúa sin ella. */
+['pageswap','pagereveal'].forEach(function(t){window.addEventListener(t,function(e){var v=e.viewTransition;if(v){v.ready.catch(function(){});v.finished.catch(function(){});if(v.updateCallbackDone)v.updateCallbackDone.catch(function(){});}});});</script>
 <link rel="icon" href="{% static 'core/img/favicon.png' %}" type="image/png" media="(prefers-color-scheme: light)">
 <link rel="icon" href="{% static 'core/img/favicon-oscuro.png' %}" type="image/png" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="{% static 'core/img/favicon.png' %}" type="image/png">

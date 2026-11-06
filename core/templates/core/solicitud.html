@@ -31,7 +31,7 @@
               {% else %}{% include 'core/partials/radios.html' with field=c.form_aceptar.contratar_seguro %}{% endif %}
               <button type="submit" class="btn btn-accent" style="margin-top:12px">{% icon 'check' 18 %}Aceptar cotización</button>
             </form>
-            <form method="post" onsubmit="return confirm('¿Rechazar esta cotización?')">
+            <form method="post" data-confirmar="¿Rechazar esta cotización?">
               {% csrf_token %}<input type="hidden" name="cotizacion" value="{{ c.pk }}"><input type="hidden" name="accion" value="rechazar">
               <button type="submit" class="btn btn-danger">{% icon 'x' 18 %}Rechazar</button>
             </form>
@@ -52,7 +52,7 @@
           {% if s.origen %}<div><dt>Origen</dt><dd>{{ s.origen }}</dd></div>{% endif %}
           <div><dt>Destino</dt><dd>{{ s.destino }}</dd></div>
           <div><dt>Fechas</dt><dd>{{ s.fecha_salida|date:"j M Y" }}{% if s.fecha_regreso %} – {{ s.fecha_regreso|date:"j M Y" }}{% endif %}</dd></div>
-          <div><dt>Pasajeros</dt><dd>{{ s.pasajeros }}</dd></div>
+          <div><dt>{% if s.tipo == 'hospedaje' %}Huéspedes{% else %}Pasajeros{% endif %}</dt><dd>{{ s.pasajeros }}</dd></div>
           {% if s.clase %}<div><dt>Clase</dt><dd>{{ s.get_clase_display }}</dd></div>{% endif %}
           <div><dt>Seguro de viaje</dt><dd>{{ s.seguro|yesno:"Sí, deseo incluirlo,No" }}</dd></div>
           <div><dt>Solicitante</dt><dd>{{ s.nombre }} · {{ s.cedula }}</dd></div>

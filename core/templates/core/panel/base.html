@@ -45,7 +45,7 @@
         <a class="sidebar-link" href="{% url 'inicio' %}" target="_blank" rel="noopener">{% icon 'globe' 16 %}Ver sitio público</a>
         <a class="sidebar-user" href="{% url 'perfil' %}" {% if n == 'perfil' %}aria-current="page"{% endif %}>
           <span class="avatar avatar--admin" aria-hidden="true">{% icon 'shield' 16 %}</span>
-          <span><strong>{{ user.get_full_name|default:user.email }}</strong><small>{% if es_admin %}Administrador{% else %}Asesor{% endif %} · Mi perfil</small></span>
+          <span><strong>{{ user|nombre }}</strong><small>{% if es_admin %}Administrador{% else %}Asesor{% endif %} · Mi perfil</small></span>
         </a>
       </div>
     </aside>

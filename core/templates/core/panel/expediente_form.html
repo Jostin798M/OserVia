@@ -2,6 +2,7 @@
 {% load ui %}
 {% block title %}{% if e %}Editar {{ e.codigo }}{% else %}Nuevo expediente{% endif %}{% endblock %}
 {% block content %}
+{% lugares_catalogo %}
 {% if e %}{% include 'core/partials/hero.html' with hero_icon='clipboard' hero_title='Editar '|add:e.codigo hero_sub=e.get_tipo_display back_url=e.get_panel_url back_label=e.codigo variante='panel' estrecho=True %}
 {% else %}{% url 'panel_expedientes' as back %}{% include 'core/partials/hero.html' with hero_icon='plus' hero_title='Nuevo expediente' hero_sub='Un expediente por cada servicio contratado.' back_url=back back_label='Expedientes' variante='panel' estrecho=True %}{% endif %}
 <div class="container container--narrow lift">
@@ -38,13 +39,13 @@
         <datalist id="paises"><option value="Estados Unidos"><option value="España (Schengen)"><option value="Canadá"><option value="Reino Unido"><option value="Tailandia"><option value="México"></datalist>
         <datalist id="tipos-visa"><option value="Turismo"><option value="Negocios"><option value="Estudios"><option value="Trabajo"><option value="Reagrupación familiar"><option value="Tránsito"></datalist>
       </div>
-      <div class="form-section" {% if form.tipo %}data-show-when="tipo=paquete"{% elif e.tipo != 'paquete' %}hidden{% endif %}>
-        <div class="form-section-title"><span class="num">3</span>Paquete contratado</div>
+      <div class="form-section" {% if form.tipo %}data-show-when="tipo=paquete|tipo=hospedaje"{% elif e.tipo != 'paquete' and e.tipo != 'hospedaje' %}hidden{% endif %}>
+        <div class="form-section-title"><span class="num">3</span>Paquete u hospedaje contratado</div>
         <div class="grid grid-2">
           {% include 'core/partials/field.html' with field=form.paquete_nombre icon='suitcase' %}
           {% include 'core/partials/field.html' with field=form.destino icon='pin' %}
-          {% include 'core/partials/field.html' with field=form.fecha_salida %}
-          {% include 'core/partials/field.html' with field=form.fecha_regreso %}
+          <div data-etiqueta-hospedaje="Fecha de entrada" data-tipo-fijo="{{ e.tipo }}">{% include 'core/partials/field.html' with field=form.fecha_salida %}</div>
+          <div data-etiqueta-hospedaje="Fecha de salida" data-tipo-fijo="{{ e.tipo }}">{% include 'core/partials/field.html' with field=form.fecha_regreso %}</div>
           {% include 'core/partials/field.html' with field=form.servicios_incluidos cls='span-all' %}
           {% include 'core/partials/field.html' with field=form.itinerario cls='span-all' %}
         </div>

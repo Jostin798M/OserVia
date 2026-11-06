@@ -18,6 +18,7 @@
         <a class="chip" href="?tipo=todos&estado={{ estado }}&q={{ q|urlencode }}" {% if tipo == 'todos' %}aria-current="true"{% endif %}>Todos</a>
         <a class="chip" href="?tipo=visa&estado={{ estado }}&q={{ q|urlencode }}" {% if tipo == 'visa' %}aria-current="true"{% endif %}>{% icon 'passport' 16 %}Visas</a>
         <a class="chip" href="?tipo=vuelo&estado={{ estado }}&q={{ q|urlencode }}" {% if tipo == 'vuelo' %}aria-current="true"{% endif %}>{% icon 'plane' 16 %}Vuelos</a>
+        <a class="chip" href="?tipo=hospedaje&estado={{ estado }}&q={{ q|urlencode }}" {% if tipo == 'hospedaje' %}aria-current="true"{% endif %}>{% icon 'bed' 16 %}Hospedaje</a>
         <a class="chip" href="?tipo=paquete&estado={{ estado }}&q={{ q|urlencode }}" {% if tipo == 'paquete' %}aria-current="true"{% endif %}>{% icon 'suitcase' 16 %}Paquetes</a>
       </nav>
       <nav class="chips" aria-label="Estado">

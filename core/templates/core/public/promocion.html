@@ -1,0 +1,31 @@
+{% extends 'core/public/base.html' %}
+{% load ui %}
+{% block title %}{{ p.titulo }}{% endblock %}
+{% block description %}{{ p.descripcion }}{% endblock %}
+{% block content %}
+{% url 'promociones' as back %}
+{% include 'core/partials/hero.html' with hero_icon='star' hero_title=p.titulo hero_sub='Promoción vigente' back_url=back back_label='Promociones' %}
+<div class="container lift">
+  <div class="stack">
+    <div class="card"><div class="card-body">
+      <p class="prose">{{ p.descripcion|linebreaksbr }}</p>
+      <dl class="dl" style="margin-top:20px">
+        <div><dt>Solicítala desde</dt><dd>{{ p.fecha_inicio|date:"j M Y" }}</dd></div>
+        <div><dt>Hasta</dt><dd>{{ p.fecha_fin|date:"j M Y" }}</dd></div>
+      </dl>
+    </div></div>
+    {% if p.condiciones %}
+    <div class="card"><div class="card-body">
+      <h2 class="h-card">Condiciones</h2>
+      <p class="prose">{{ p.condiciones|linebreaksbr }}</p>
+    </div></div>
+    {% endif %}
+    {% if ofertas %}
+    <section aria-labelledby="t-ofertas-promo">
+      <div class="section-head"><div><h2 id="t-ofertas-promo">Ofertas con esta promoción</h2></div></div>
+      <div class="cards-grid">{% for o in ofertas %}{% include 'core/public/_oferta_card.html' %}{% endfor %}</div>
+    </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

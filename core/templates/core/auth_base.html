@@ -24,9 +24,9 @@
       {% include 'core/partials/brand.html' %}
       <div>
         <h2>Tu próximo viaje empieza aquí.</h2>
-        <p>Cotiza vuelos y paquetes, gestiona tus trámites de visa y sigue cada solicitud en tiempo real desde un solo lugar.</p>
+        <p>Cotiza vuelos, paquetes y hospedaje, gestiona tus trámites de visa y sigue cada solicitud en tiempo real desde un solo lugar.</p>
         <ul class="auth-features">
-          <li><span class="f-icon">{% icon 'plane' 18 %}</span>Cotizaciones de vuelos y paquetes</li>
+          <li><span class="f-icon">{% icon 'plane' 18 %}</span>Cotizaciones de vuelos, paquetes y hospedaje</li>
           <li><span class="f-icon">{% icon 'passport' 18 %}</span>Expedientes de visa con carga de documentos</li>
           <li><span class="f-icon">{% icon 'headset' 18 %}</span>Acompañamiento de un asesor dedicado</li>
         </ul>
@@ -43,6 +43,12 @@
         {% block content %}{% endblock %}
       </div>
     </main>
+  </div>
+  <div class="carga-logo" data-carga-logo hidden role="status" aria-label="Iniciando sesión">
+    <div class="carga-logo-marca">
+      <div class="carga-logo-base">{% include 'core/partials/logo.html' %}</div>
+      <div class="carga-logo-lleno" aria-hidden="true">{% include 'core/partials/logo.html' %}</div>
+    </div>
   </div>
   <script src="{% static 'core/js/app.js' %}" defer></script>
 </body>

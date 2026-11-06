@@ -1,4 +1,4 @@
 {% load ui %}<div class="cita-mini">
   <div class="cita-date"><strong>{{ c.fecha|date:"j" }}</strong><span>{{ c.fecha|date:"M" }}</span></div>
-  <div style="min-width:0"><strong>{{ c.motivo }}</strong><span class="muted small" style="display:block">{{ c.hora|time:"H:i" }} · {{ c.get_modalidad_display }}{% if c.asesor %} · {{ c.asesor.get_full_name|default:c.asesor.email }}{% endif %}</span></div>
+  <div style="min-width:0"><strong>{{ c.motivo }}</strong><span class="muted small" style="display:block">{{ c.hora|time:"H:i" }} · {{ c.get_modalidad_display }}{% if c.asesor %} · {{ c.asesor|nombre }}{% endif %}</span></div>
 </div>

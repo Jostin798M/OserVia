@@ -3,11 +3,15 @@
 {% block title %}Vuelos{% endblock %}
 {% block content %}
 {% include 'core/partials/hero.html' with hero_icon='plane' hero_title='Ofertas de vuelos' hero_sub='Busca entre los vuelos publicados por la agencia. Combina los filtros que necesites.' %}
+{{ lugares_origen|json_script:"lugares-origen" }}{{ lugares_destino|json_script:"lugares-destino" }}
 <div class="container lift">
   <form method="get" class="card card-elevated search-card" role="search" aria-label="Buscar vuelos">
     <div class="card-body">
-      <div class="grid grid-4">
+      <div class="grid grid-2" style="margin-bottom:16px">
+        {% include 'core/partials/field.html' with field=form.origen icon='takeoff' %}
         {% include 'core/partials/field.html' with field=form.destino icon='pin' %}
+      </div>
+      <div class="grid grid-3">
         {% include 'core/partials/field.html' with field=form.fecha %}
         {% include 'core/partials/field.html' with field=form.precio_max icon='dollar' %}
         {% include 'core/partials/field.html' with field=form.duracion_max icon='clock' %}
@@ -26,7 +30,7 @@
     {% else %}
       <div class="card"><div class="empty">{% include 'core/partials/empty_art.html' %}
         <h3>{% if filtrando %}No encontramos vuelos con esos filtros{% else %}No hay ofertas de vuelos publicadas{% endif %}</h3>
-        <p>{% if filtrando %}Prueba con otro destino, otra fecha o un precio mayor. {% endif %}También puedes pedirnos una cotización a tu medida.</p>
+        <p>{% if filtrando %}Prueba con otro origen, otro destino, otra fecha o un precio mayor. {% endif %}También puedes pedirnos una cotización a tu medida.</p>
         <div class="actions"><a class="btn btn-primary" href="{% url 'cotizar' %}?tipo=vuelo">{% icon 'send' 18 %}Solicitar cotización</a>{% if filtrando %}<a class="btn" href="{% url 'vuelos' %}">Ver todas las ofertas</a>{% endif %}</div>
       </div></div>
     {% endif %}

@@ -56,6 +56,9 @@ class EstiloMixin:
         super().__init__(*args, **kwargs)
         for name, field in self.fields.items():
             w = field.widget
+            if isinstance(w, forms.RadioSelect):
+                # Los radios no necesitan la opción vacía («- Select an option -»).
+                field.choices = [c for c in field.choices if c[0] != '']
             if isinstance(w, (forms.RadioSelect, forms.CheckboxInput, forms.CheckboxSelectMultiple)):
                 continue
             base = 'select' if isinstance(w, forms.Select) else 'input'
@@ -235,10 +238,32 @@ class ConsultaForm(EstiloMixin, forms.Form):
         return ''
 
 
+class BuscarPaquetesForm(EstiloMixin, forms.Form):
+    """Mismos filtros combinables que en vuelos, con la duración en días."""
+    destino = forms.CharField(label='Destino', required=False, widget=forms.TextInput(attrs={
+        'placeholder': '¿A dónde quieres ir?', 'autocomplete': 'off', 'data-lugares': 'lugares-destino'}))
+    fecha = forms.DateField(label='Fecha de salida', required=False, widget=fecha())
+    precio_max = forms.DecimalField(label='Precio máx. por persona (USD)', required=False, min_value=0,
+                                    widget=forms.NumberInput(attrs={'placeholder': 'Ej.: 900', 'step': '1'}))
+    duracion_max = forms.IntegerField(label='Duración máx. (días)', required=False, min_value=1,
+                                      widget=forms.NumberInput(attrs={'placeholder': 'Ej.: 7', 'step': '1'}))
+
+
+class BuscarHospedajeForm(EstiloMixin, forms.Form):
+    """Mismos filtros combinables que en vuelos, sin duración de vuelo."""
+    destino = forms.CharField(label='Destino', required=False, widget=forms.TextInput(attrs={
+        'placeholder': '¿Dónde quieres hospedarte?', 'autocomplete': 'off', 'data-lugares': 'lugares-destino'}))
+    fecha = forms.DateField(label='Fecha de entrada', required=False, widget=fecha())
+    precio_max = forms.DecimalField(label='Precio máx. por persona (USD)', required=False, min_value=0,
+                                    widget=forms.NumberInput(attrs={'placeholder': 'Ej.: 300', 'step': '1'}))
+
+
 class BuscarVuelosForm(EstiloMixin, forms.Form):
     """RS-05.7: filtros combinables."""
-    destino = forms.CharField(label='Destino', required=False,
-                              widget=forms.TextInput(attrs={'placeholder': '¿A dónde quieres ir?'}))
+    origen = forms.CharField(label='Origen', required=False, widget=forms.TextInput(attrs={
+        'placeholder': '¿Desde dónde sales?', 'autocomplete': 'off', 'data-lugares': 'lugares-origen', 'data-ubicacion': '1'}))
+    destino = forms.CharField(label='Destino', required=False, widget=forms.TextInput(attrs={
+        'placeholder': '¿A dónde quieres ir?', 'autocomplete': 'off', 'data-lugares': 'lugares-destino'}))
     fecha = forms.DateField(label='Fecha de salida', required=False, widget=fecha())
     precio_max = forms.DecimalField(label='Precio máx. por persona (USD)', required=False, min_value=0,
                                     widget=forms.NumberInput(attrs={'placeholder': 'Ej.: 900', 'step': '1'}))
@@ -259,8 +284,8 @@ class SolicitudViajeForm(EstiloMixin, forms.ModelForm):
                   'seguro', 'nombre', 'cedula', 'email', 'telefono', 'comentarios']
         widgets = {
             'tipo': forms.RadioSelect, 'trayecto': forms.RadioSelect,
-            'origen': forms.TextInput(attrs={'placeholder': 'Ciudad o aeropuerto', 'list': 'ciudades', 'autocomplete': 'off'}),
-            'destino': forms.TextInput(attrs={'placeholder': 'Ciudad, país o paquete', 'list': 'ciudades', 'autocomplete': 'off'}),
+            'origen': forms.TextInput(attrs={'placeholder': 'Ciudad o aeropuerto', 'autocomplete': 'off', 'data-lugares': 'lugares-catalogo', 'data-ubicacion': 'manual'}),
+            'destino': forms.TextInput(attrs={'placeholder': 'Ciudad o país', 'autocomplete': 'off', 'data-lugares': 'lugares-catalogo'}),
             'fecha_salida': fecha(), 'fecha_regreso': fecha({'data-min-from': 'id_fecha_salida'}),
             'pasajeros': forms.NumberInput(attrs={'min': 1, 'max': 20, 'inputmode': 'numeric'}),
             'cedula': forms.TextInput(attrs={'placeholder': '0912345678'}),
@@ -268,7 +293,7 @@ class SolicitudViajeForm(EstiloMixin, forms.ModelForm):
             'comentarios': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Horarios preferidos, equipaje, presupuesto…'}),
         }
         labels = {'fecha_salida': 'Salida', 'fecha_regreso': 'Regreso', 'clase': 'Clase de cabina',
-                  'destino': 'Destino o paquete'}
+                  'destino': 'Destino'}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -304,6 +329,12 @@ class SolicitudViajeForm(EstiloMixin, forms.ModelForm):
             d['trayecto'], d['clase'] = '', ''
             if not regreso:
                 self.add_error('fecha_regreso', 'Indica la fecha prevista de regreso del paquete.')
+        elif tipo == SolicitudViaje.Tipo.HOSPEDAJE:
+            d['trayecto'], d['clase'], d['origen'] = '', '', ''
+            if not regreso:
+                self.add_error('fecha_regreso', 'Indica la fecha de salida del hospedaje.')
+            elif salida and regreso <= salida:
+                self.add_error('fecha_regreso', 'La salida debe ser al menos una noche después de la entrada.')
         if salida and regreso and regreso < salida:
             self.add_error('fecha_regreso', 'El regreso debe ser posterior a la salida.')
         if d.get('origen') and d.get('destino') and d['origen'].strip().lower() == d['destino'].strip().lower():
@@ -403,6 +434,10 @@ class ExpedienteForm(PrecioValidoMixin, EstiloMixin, forms.ModelForm):
             for campo in ('paquete_nombre', 'destino', 'fecha_salida', 'fecha_regreso'):
                 if not d.get(campo):
                     self.add_error(campo, 'Obligatorio para un paquete turístico.')
+        if tipo == Expediente.Tipo.HOSPEDAJE:
+            for campo in ('paquete_nombre', 'destino', 'fecha_salida', 'fecha_regreso'):
+                if not d.get(campo):
+                    self.add_error(campo, 'Obligatorio para un hospedaje.')
         if d.get('fecha_salida') and d.get('fecha_regreso') and d['fecha_regreso'] < d['fecha_salida']:
             self.add_error('fecha_regreso', 'El regreso debe ser posterior a la salida.')
         return d
@@ -644,6 +679,9 @@ class OfertaForm(EstiloMixin, forms.ModelForm):
                   'incluye_seguro', 'promocion', 'publicado', 'orden']
         widgets = {'tipo': forms.RadioSelect, 'fecha_salida': fecha(), 'fecha_regreso': fecha(),
                    'descripcion': _textarea(), 'servicios_incluidos': _textarea(4), 'condiciones': _textarea()}
+        help_texts = {'fecha_salida': 'En un hospedaje, es la fecha de entrada.',
+                      'fecha_regreso': 'En un hospedaje, es la fecha de salida.',
+                      'duracion_dias': 'En un hospedaje se calcula con las fechas.'}
 
     def clean(self):
         d = super().clean()
@@ -654,6 +692,15 @@ class OfertaForm(EstiloMixin, forms.ModelForm):
                 self.add_error('duracion_horas', 'Obligatorio para una oferta de vuelo.')
         if d.get('tipo') == Oferta.Tipo.PAQUETE and not d.get('duracion_dias'):
             self.add_error('duracion_dias', 'Obligatorio para un paquete turístico.')
+        if d.get('tipo') == Oferta.Tipo.HOSPEDAJE:
+            d['origen'], d['duracion_horas'] = '', None
+            entrada, salida = d.get('fecha_salida'), d.get('fecha_regreso')
+            if not salida:
+                self.add_error('fecha_regreso', 'En un hospedaje, indica aquí la fecha de salida.')
+            elif entrada and salida <= entrada:
+                self.add_error('fecha_regreso', 'La salida debe ser al menos una noche después de la entrada.')
+            elif entrada:
+                d['duracion_dias'] = (salida - entrada).days
         if d.get('fecha_salida') and d.get('fecha_regreso') and d['fecha_regreso'] < d['fecha_salida']:
             self.add_error('fecha_regreso', 'El regreso debe ser posterior a la salida.')
         return d
@@ -710,9 +757,22 @@ class PublicacionForm(EstiloMixin, forms.ModelForm):
 
 
 class SitioForm(EstiloMixin, forms.ModelForm):
-    video_tutorial = v.ArchivoField(label='Video tutorial', extensiones=v.VIDEOS, max_mb=80, required=False)
+    video_tutorial = v.ArchivoField(label='Video tutorial (tema claro)', extensiones=v.VIDEOS, max_mb=80, required=False)
+    video_tutorial_oscuro = v.ArchivoField(label='Video tutorial (tema oscuro)', extensiones=v.VIDEOS, max_mb=80, required=False)
 
     class Meta:
         model = ContenidoSitio
         exclude = ['actualizado']
         widgets = {'descripcion': _textarea(), 'historia': _textarea(5), 'mision': _textarea(), 'vision': _textarea()}
+
+
+# Autocompletado de lugares en los formularios internos.
+for _campo in (VueloContratadoForm.base_fields['origen'], VueloContratadoForm.base_fields['destino'],
+               OfertaForm.base_fields['origen'], OfertaForm.base_fields['destino'],
+               ExpedienteForm.base_fields['destino']):
+    _campo.widget.attrs.update({'autocomplete': 'off', 'data-lugares': 'lugares-catalogo'})
+
+# En el panel, cada tipo de oferta muestra solo los campos que le corresponden.
+OfertaForm.base_fields['origen'].widget.attrs['data-solo-tipo'] = 'vuelo'
+OfertaForm.base_fields['duracion_horas'].widget.attrs['data-solo-tipo'] = 'vuelo'
+OfertaForm.base_fields['duracion_dias'].widget.attrs['data-solo-tipo'] = 'paquete'

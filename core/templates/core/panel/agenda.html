@@ -10,7 +10,7 @@
       <label class="sr-only" for="f-dia">Fecha</label>
       <input id="f-dia" class="input" type="date" name="fecha" value="{{ dia|date:'Y-m-d' }}" onchange="this.form.submit()">
       <a class="icon-btn" href="?fecha={{ siguiente|date:'Y-m-d' }}{% if asesor_id %}&asesor={{ asesor_id }}{% endif %}" aria-label="Día siguiente">{% icon 'arrow-right' 16 %}</a>
-      {% if asesores %}<label class="sr-only" for="f-as">Asesor</label><select id="f-as" class="select" name="asesor" onchange="this.form.submit()"><option value="">Todo el personal</option>{% for a in asesores %}<option value="{{ a.pk }}" {% if a.pk|stringformat:'s' == asesor_id %}selected{% endif %}>{{ a.get_full_name|default:a.email }}</option>{% endfor %}</select>{% endif %}
+      {% if asesores %}<label class="sr-only" for="f-as">Asesor</label><select id="f-as" class="select" name="asesor" onchange="this.form.submit()"><option value="">Todo el personal</option>{% for a in asesores %}<option value="{{ a.pk }}" {% if a.pk|stringformat:'s' == asesor_id %}selected{% endif %}>{{ a|nombre }}</option>{% endfor %}</select>{% endif %}
       {% if dia != hoy %}<a class="btn btn-sm" href="?">Hoy</a>{% endif %}
       <a class="btn btn-primary btn-sm" href="{% url 'panel_cita_nueva' %}">{% icon 'plus' 16 %}Nueva cita</a>
     </form>

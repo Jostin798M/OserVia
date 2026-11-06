@@ -9,7 +9,7 @@
 <div class="alert alert--error" role="alert" style="margin-bottom:20px">{% icon 'alert' 20 %}<div>{{ form.non_field_errors|join:" " }}</div></div>
 {% endif %}
 
-<form method="post" class="stack" novalidate data-submit-once>
+<form method="post" class="stack" novalidate data-submit-once data-inicio-sesion>
   {% csrf_token %}
   <input type="hidden" name="next" value="{{ next }}">
   {% include 'core/partials/field.html' with field=form.email icon='mail' %}

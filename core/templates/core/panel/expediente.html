@@ -2,6 +2,7 @@
 {% load ui %}
 {% block title %}{{ e.codigo }}{% endblock %}
 {% block content %}
+{% lugares_catalogo %}
 {% url 'panel_expedientes' as back %}
 {% include 'core/partials/hero.html' with hero_icon='clipboard' hero_title=e.titulo hero_sub=e.codigo|add:' · '|add:e.get_tipo_display|add:' · '|add:e.nombre back_url=back back_label='Expedientes' variante='panel' %}
 <div class="container lift">
@@ -10,7 +11,7 @@
     {% if e.es_visa %}<a class="chip" href="#etapa">Etapa</a>{% endif %}
     <a class="chip" href="#documentos">Documentos</a>
     {% if e.es_visa %}<a class="chip" href="#cita_consular">Cita consular</a><a class="chip" href="#correo">Correos</a><a class="chip" href="#resultado">Resultado</a>{% endif %}
-    {% if not e.es_visa %}<a class="chip" href="#vuelo">Vuelos</a><a class="chip" href="#doc_viaje">Docs. de viaje</a>{% endif %}
+    {% if not e.es_visa %}{% if e.tipo != 'hospedaje' %}<a class="chip" href="#vuelo">Vuelos</a>{% endif %}<a class="chip" href="#doc_viaje">Docs. de viaje</a>{% endif %}
     <a class="chip" href="#pagos">Pagos</a><a class="chip" href="#citas">Citas</a>
   </nav>
 
@@ -18,7 +19,7 @@
     <div class="stack">
       {# ------------------------------------------------ Resumen #}
       <section class="card" id="resumen"><div class="card-body">
-        <div class="detail-head"><div><span class="detail-code">{{ e.codigo }} · creado el {{ e.creado|date:"j M Y" }} por {{ e.creado_por.get_full_name|default:e.creado_por.email|default:'—' }}</span><h2 class="h-card" style="margin:0">{{ e.get_tipo_display }}</h2></div>
+        <div class="detail-head"><div><span class="detail-code">{{ e.codigo }} · creado el {{ e.creado|date:"j M Y" }} por {{ e.creado_por|nombre }}</span><h2 class="h-card" style="margin:0">{{ e.get_tipo_display }}</h2></div>
           {% include 'core/partials/badge.html' with tono=e.tono texto=e.get_estado_display %}</div>
         <dl class="dl">
           <div><dt>Titular</dt><dd>{{ e.nombre }}</dd></div>
@@ -28,10 +29,10 @@
           <div><dt>Cuenta</dt><dd>{{ e.usuario.email }}</dd></div>
           {% if e.solicitud %}<div><dt>Solicitud de origen</dt><dd><a href="{{ e.solicitud.get_panel_url }}">{{ e.solicitud.codigo }}</a></dd></div>{% endif %}
           {% if e.es_visa %}<div><dt>País</dt><dd>{{ e.pais }}</dd></div><div><dt>Tipo de visa</dt><dd>{{ e.tipo_visa }}</dd></div><div><dt>Pasaporte</dt><dd>{{ e.pasaporte|default:'—' }}</dd></div>{% endif %}
-          {% if e.tipo == 'paquete' %}<div><dt>Paquete</dt><dd>{{ e.paquete_nombre }}</dd></div><div><dt>Destino</dt><dd>{{ e.destino }}</dd></div><div><dt>Fechas</dt><dd>{{ e.fecha_salida|date:"j M Y" }} – {{ e.fecha_regreso|date:"j M Y" }}</dd></div>{% endif %}
+          {% if e.tipo == 'paquete' or e.tipo == 'hospedaje' %}<div><dt>{% if e.tipo == 'hospedaje' %}Hospedaje{% else %}Paquete{% endif %}</dt><dd>{{ e.paquete_nombre }}</dd></div><div><dt>Destino</dt><dd>{{ e.destino }}</dd></div><div><dt>Fechas</dt><dd>{{ e.fecha_salida|date:"j M Y" }} – {{ e.fecha_regreso|date:"j M Y" }}</dd></div>{% endif %}
           <div><dt>Última actualización</dt><dd>{{ e.actualizado|date:"j M Y, H:i" }}</dd></div>
         </dl>
-        {% if e.tipo == 'paquete' and e.itinerario %}<details class="doc-files" style="margin-top:12px"><summary>Servicios e itinerario</summary><ul class="checklist">{% for x in e.lista_servicios %}<li>{% icon 'check' 16 %}{{ x }}</li>{% endfor %}</ul><p class="prose" style="margin-top:10px">{{ e.itinerario|linebreaksbr }}</p></details>{% endif %}
+        {% if e.tipo != 'visa' and e.tipo != 'vuelo' and e.itinerario %}<details class="doc-files" style="margin-top:12px"><summary>Servicios e itinerario</summary><ul class="checklist">{% for x in e.lista_servicios %}<li>{% icon 'check' 16 %}{{ x }}</li>{% endfor %}</ul><p class="prose" style="margin-top:10px">{{ e.itinerario|linebreaksbr }}</p></details>{% endif %}
         <a class="btn btn-sm" style="margin-top:14px" href="{% url 'panel_expediente_editar' e.pk %}">{% icon 'file' 16 %}Editar datos</a>
       </div></section>
 
@@ -50,7 +51,7 @@
         </form>
         <h3 class="h-sub">Historial de cambios</h3>
         {% if cambios %}<div class="table-wrap"><table class="table table--stack"><thead><tr><th>Fecha y hora</th><th>Etapa anterior</th><th>Nueva etapa</th><th>Asesor</th></tr></thead><tbody>
-          {% for c in cambios %}<tr><td data-label="Fecha y hora">{{ c.fecha|date:"j M Y, H:i" }}</td><td data-label="Etapa anterior">{{ c.get_anterior_display|default:'—' }}</td><td data-label="Nueva etapa"><strong>{{ c.get_nueva_display }}</strong></td><td data-label="Asesor">{{ c.usuario.get_full_name|default:c.usuario.email }}</td></tr>{% endfor %}
+          {% for c in cambios %}<tr><td data-label="Fecha y hora">{{ c.fecha|date:"j M Y, H:i" }}</td><td data-label="Etapa anterior">{{ c.get_anterior_display|default:'—' }}</td><td data-label="Nueva etapa"><strong>{{ c.get_nueva_display }}</strong></td><td data-label="Asesor">{{ c.usuario|nombre }}</td></tr>{% endfor %}
         </tbody></table></div>{% else %}<p class="muted small">Sin cambios de etapa todavía (inició en «Recolección de documentos»).</p>{% endif %}
       </div></section>
       {% endif %}
@@ -63,7 +64,7 @@
           <li class="doc">
             <div class="doc-head"><div><strong>{{ d.nombre }}</strong>{% if d.indicaciones %}<span class="muted small" style="display:block">{{ d.indicaciones }}</span>{% endif %}</div>
               <div class="inline-actions">{% include 'core/partials/badge.html' with tono=d.tono texto=d.get_estado_display %}
-              {% if not d.archivos.all %}<form method="post" class="inline" onsubmit="return confirm('¿Quitar este documento de la lista?')">{% csrf_token %}<input type="hidden" name="accion" value="doc_eliminar"><input type="hidden" name="id" value="{{ d.pk }}"><button class="icon-btn icon-btn--sm" aria-label="Quitar" title="Quitar">{% icon 'x' 14 %}</button></form>{% endif %}</div></div>
+              {% if not d.archivos.all %}<form method="post" class="inline" data-confirmar="¿Quitar este documento de la lista?">{% csrf_token %}<input type="hidden" name="accion" value="doc_eliminar"><input type="hidden" name="id" value="{{ d.pk }}"><button class="icon-btn icon-btn--sm" aria-label="Quitar" title="Quitar">{% icon 'x' 14 %}</button></form>{% endif %}</div></div>
             {% if d.archivos.all %}<ul class="file-list">{% for a in d.archivos.all %}<li>{% include 'core/partials/archivo_link.html' with tipo='documento' pk=a.pk ext=a.extension nombre=a.nombre_original sub=a.subido|date:"j M Y, H:i" %}</li>{% endfor %}</ul>{% endif %}
             {% if d.estado == 'recibido' or d.estado == 'revision' %}
             <form method="post" class="review" novalidate>{% csrf_token %}<input type="hidden" name="accion" value="revisar"><input type="hidden" name="id" value="{{ d.pk }}">
@@ -77,7 +78,7 @@
               <button class="btn btn-sm btn-primary" type="submit">Guardar revisión</button>
             </form>
             {% endif %}
-            {% if d.revisiones.all %}<details class="doc-files"><summary>Historial de revisión</summary><ul class="rev-list">{% for r in d.revisiones.all %}<li><span class="badge badge--neutral">{{ r.get_estado_display }}</span> {{ r.fecha|date:"j M Y, H:i" }} · {{ r.revisor.get_full_name|default:r.revisor.email }}{% if r.comentario %} — {{ r.comentario }}{% endif %}</li>{% endfor %}</ul></details>{% endif %}
+            {% if d.revisiones.all %}<details class="doc-files"><summary>Historial de revisión</summary><ul class="rev-list">{% for r in d.revisiones.all %}<li><span class="badge badge--neutral">{{ r.get_estado_display }}</span> {{ r.fecha|date:"j M Y, H:i" }} · {{ r.revisor|nombre }}{% if r.comentario %} — {{ r.comentario }}{% endif %}</li>{% endfor %}</ul></details>{% endif %}
           </li>
           {% endfor %}
         </ul>{% else %}<p class="muted small">Aún no se han solicitado documentos.</p>{% endif %}
@@ -116,6 +117,7 @@
       {% endif %}
 
       {% if not e.es_visa %}
+      {% if e.tipo != 'hospedaje' %}
       {# ------------------------------------------------ Vuelos (RS-06.4) y avisos (RS-06.8) #}
       <section class="card"><div class="card-body">
         <h2 class="h-card">Vuelos y boletos</h2>
@@ -128,6 +130,7 @@
         {% empty %}<p class="muted small">Sin avisos.</p>{% endfor %}
         {% include 'core/panel/_add.html' with form=forms.aviso accion='aviso' titulo='Registrar cancelación o cambio' %}
       </div></section>
+      {% endif %}
 
       {# ------------------------------------------------ Documentos de viaje (RS-06.5) #}
       <section class="card"><div class="card-body">
@@ -143,9 +146,9 @@
 
       <div class="card"><div class="card-body">
         <h3 class="h-card">Asesor responsable</h3>
-        <p>{% if e.asesor %}<strong>{{ e.asesor.get_full_name|default:e.asesor.email }}</strong><span class="muted small" style="display:block">Asignado por {{ e.asignado_por.get_full_name|default:e.asignado_por.email }} el {{ e.asignado_en|date:"j M Y, H:i" }}</span>{% else %}<span class="muted">Sin asignar</span>{% endif %}</p>
+        <p>{% if e.asesor %}<strong>{{ e.asesor|nombre }}</strong><span class="muted small" style="display:block">Asignado por {% if e.asignado_por %}{{ e.asignado_por|nombre }}{% else %}—{% endif %} el {{ e.asignado_en|date:"j M Y, H:i" }}</span>{% else %}<span class="muted">Sin asignar</span>{% endif %}</p>
         {% if es_admin %}<form method="post" style="margin-top:12px">{% csrf_token %}<input type="hidden" name="accion" value="asignar">{% include 'core/partials/field.html' with field=asignar_form.asesor %}<button class="btn btn-block btn-sm" style="margin-top:10px" type="submit">{% if e.asesor %}Cambiar asesor{% else %}Asignar{% endif %}</button></form>
-        {% if asignaciones %}<details class="doc-files"><summary>Historial de asignaciones</summary><ul class="rev-list">{% for a in asignaciones %}<li>{{ a.fecha|date:"j M Y, H:i" }} · {{ a.asesor.get_full_name|default:a.asesor.email }} (por {{ a.asignado_por.get_full_name|default:a.asignado_por.email }})</li>{% endfor %}</ul></details>{% endif %}{% endif %}
+        {% if asignaciones %}<details class="doc-files"><summary>Historial de asignaciones</summary><ul class="rev-list">{% for a in asignaciones %}<li>{{ a.fecha|date:"j M Y, H:i" }} · {{ a.asesor|nombre }} (por {% if a.asignado_por %}{{ a.asignado_por|nombre }}{% else %}—{% endif %})</li>{% endfor %}</ul></details>{% endif %}{% endif %}
       </div></div>
 
       <form method="post" class="card" novalidate>{% csrf_token %}<input type="hidden" name="accion" value="seguimiento">
@@ -170,7 +173,7 @@
               <form method="post" novalidate style="margin-top:8px">{% csrf_token %}<input type="hidden" name="accion" value="rechazar"><input type="hidden" name="id" value="{{ c.pk }}">
                 {% include 'core/partials/field.html' with field=c.form.motivo %}<button class="btn btn-danger btn-sm" style="margin-top:8px" type="submit">Confirmar rechazo</button></form></details>
           </div>
-          {% elif c.revisado_por %}<span class="muted small">Revisado por {{ c.revisado_por.get_full_name|default:c.revisado_por.email }} el {{ c.revisado_en|date:"j M, H:i" }}{% if c.motivo_rechazo %} · {{ c.motivo_rechazo }}{% endif %}</span>{% endif %}
+          {% elif c.revisado_por %}<span class="muted small">Revisado por {{ c.revisado_por|nombre }} el {{ c.revisado_en|date:"j M, H:i" }}{% if c.motivo_rechazo %} · {{ c.motivo_rechazo }}{% endif %}</span>{% endif %}
         </div>
         {% empty %}<p class="muted small" style="margin-top:10px">Sin comprobantes enviados.</p>{% endfor %}
       </div></div>

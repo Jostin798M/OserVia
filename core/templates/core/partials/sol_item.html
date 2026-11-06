@@ -1,8 +1,8 @@
 {% load ui %}<a class="req req--viaje" href="{% if panel %}{{ s.get_panel_url }}{% else %}{{ s.get_absolute_url }}{% endif %}">
-  <span class="req-icon">{% if s.tipo == 'paquete' %}{% icon 'suitcase' 22 %}{% else %}{% icon 'plane' 22 %}{% endif %}</span>
+  <span class="req-icon">{% if s.tipo == 'hospedaje' %}{% icon 'bed' 22 %}{% elif s.tipo == 'paquete' %}{% icon 'suitcase' 22 %}{% else %}{% icon 'plane' 22 %}{% endif %}</span>
   <span class="req-main">
     <span class="req-title">{{ s.titulo }}</span>
-    <span class="req-meta"><span class="code">{{ s.codigo }}</span>{% if panel %}<span>{{ s.nombre }}</span><span>{% if s.asesor %}{{ s.asesor.get_full_name|default:s.asesor.email }}{% else %}Sin asesor{% endif %}</span>{% else %}<span>{{ s.subtitulo }}</span>{% endif %}<span>{{ s.creado|date:"j M Y" }}</span></span>
+    <span class="req-meta"><span class="code">{{ s.codigo }}</span>{% if panel %}<span>{{ s.nombre }}</span><span>{% if s.asesor %}{{ s.asesor|nombre }}{% else %}Sin asesor{% endif %}</span>{% else %}<span>{{ s.subtitulo }}</span>{% endif %}<span>{{ s.creado|date:"j M Y" }}</span></span>
   </span>
   <span class="req-side">{% include 'core/partials/badge.html' with tono=s.tono texto=s.get_estado_display %}{% icon 'chevron-right' 18 'chev' %}</span>
 </a>

@@ -14,9 +14,9 @@
           <div><dt>Oferta de origen</dt><dd>{{ s.oferta_texto }}{% if s.promocion_nombre %}<br><span class="muted small">Promoción: {{ s.promocion_nombre }}</span>{% endif %}</dd></div>
           {% if s.origen %}<div><dt>Origen</dt><dd>{{ s.origen }}</dd></div>{% endif %}
           <div><dt>Destino</dt><dd>{{ s.destino }}</dd></div>
-          <div><dt>Salida</dt><dd>{{ s.fecha_salida|date:"j M Y" }}</dd></div>
-          <div><dt>Regreso</dt><dd>{{ s.fecha_regreso|date:"j M Y"|default:"Solo ida" }}</dd></div>
-          <div><dt>Pasajeros</dt><dd>{{ s.pasajeros }}</dd></div>
+          <div><dt>{% if s.tipo == 'hospedaje' %}Entrada{% else %}Salida{% endif %}</dt><dd>{{ s.fecha_salida|date:"j M Y" }}</dd></div>
+          <div><dt>{% if s.tipo == 'hospedaje' %}Salida{% else %}Regreso{% endif %}</dt><dd>{{ s.fecha_regreso|date:"j M Y"|default:"Solo ida" }}</dd></div>
+          <div><dt>{% if s.tipo == 'hospedaje' %}Huéspedes{% else %}Pasajeros{% endif %}</dt><dd>{{ s.pasajeros }}</dd></div>
           {% if s.clase %}<div><dt>Clase</dt><dd>{{ s.get_clase_display }}</dd></div>{% endif %}
           <div><dt>Desea seguro de viaje</dt><dd>{{ s.seguro|yesno:"Sí,No" }}</dd></div>
           <div><dt>Solicitante</dt><dd>{{ s.nombre }}</dd></div>
@@ -31,7 +31,7 @@
         <h2 class="h-card">Cotizaciones registradas</h2>
         {% for c in cotizaciones %}
         <article class="quote{% if c.estado == 'aceptada' %} quote--ok{% endif %}">
-          <div class="quote-head"><div><span class="detail-code">{{ c.codigo }} · por {{ c.creado_por.get_full_name|default:c.creado_por.email }} el {{ c.creado|date:"j M Y" }}</span><div class="price"><strong>${{ c.precio_total|floatformat:"2g" }}</strong><span>válida hasta {{ c.vigencia|date:"j M Y" }}</span></div></div>
+          <div class="quote-head"><div><span class="detail-code">{{ c.codigo }} · por {{ c.creado_por|nombre }} el {{ c.creado|date:"j M Y" }}</span><div class="price"><strong>${{ c.precio_total|floatformat:"2g" }}</strong><span>válida hasta {{ c.vigencia|date:"j M Y" }}</span></div></div>
             {% if c.vencida %}{% include 'core/partials/badge.html' with tono='neutral' texto='Vencida' %}{% else %}{% include 'core/partials/badge.html' with tono=c.tono texto=c.get_estado_display %}{% endif %}</div>
           <ul class="checklist">{% for x in c.lista_servicios %}<li>{% icon 'check' 16 %}{{ x }}</li>{% endfor %}</ul>
           <p class="small" style="margin-top:8px"><strong>Seguro:</strong> {{ c.incluye_seguro|yesno:"incluido,no incluido" }}{% if c.respondida_en %} · <strong>Respuesta del usuario:</strong> {{ c.get_estado_display }} el {{ c.respondida_en|date:"j M Y, H:i" }}{% if c.estado == 'aceptada' and not c.incluye_seguro %} · desea contratar seguro: {{ c.contratar_seguro|yesno:"sí,no" }}{% endif %}{% endif %}</p>
@@ -59,13 +59,13 @@
     <aside class="stack">
       <div class="card"><div class="card-body">
         <h3 class="h-card">Asesor responsable</h3>
-        <p>{% if s.asesor %}<strong>{{ s.asesor.get_full_name|default:s.asesor.email }}</strong><span class="muted small" style="display:block">Asignado por {{ s.asignado_por.get_full_name|default:s.asignado_por.email }} el {{ s.asignado_en|date:"j M Y, H:i" }}</span>{% else %}<span class="muted">Sin asignar</span>{% endif %}</p>
+        <p>{% if s.asesor %}<strong>{{ s.asesor|nombre }}</strong><span class="muted small" style="display:block">Asignado por {% if s.asignado_por %}{{ s.asignado_por|nombre }}{% else %}—{% endif %} el {{ s.asignado_en|date:"j M Y, H:i" }}</span>{% else %}<span class="muted">Sin asignar</span>{% endif %}</p>
         {% if es_admin %}
         <form method="post" style="margin-top:14px">{% csrf_token %}<input type="hidden" name="accion" value="asignar">
           {% include 'core/partials/field.html' with field=asignar_form.asesor %}
           <button class="btn btn-block" style="margin-top:10px" type="submit">{% if s.asesor %}Cambiar asesor{% else %}Asignar{% endif %}</button>
         </form>
-        {% if asignaciones %}<details class="doc-files" style="margin-top:12px"><summary>Historial de asignaciones</summary><ul class="rev-list">{% for a in asignaciones %}<li>{{ a.fecha|date:"j M Y, H:i" }} · {{ a.asesor.get_full_name|default:a.asesor.email }} (por {{ a.asignado_por.get_full_name|default:a.asignado_por.email }})</li>{% endfor %}</ul></details>{% endif %}
+        {% if asignaciones %}<details class="doc-files" style="margin-top:12px"><summary>Historial de asignaciones</summary><ul class="rev-list">{% for a in asignaciones %}<li>{{ a.fecha|date:"j M Y, H:i" }} · {{ a.asesor|nombre }} (por {% if a.asignado_por %}{{ a.asignado_por|nombre }}{% else %}—{% endif %})</li>{% endfor %}</ul></details>{% endif %}
         {% endif %}
       </div></div>
       <div class="card"><div class="card-body">
@@ -74,7 +74,7 @@
         {% if s.estado == 'aceptada' and not expedientes %}<p class="muted small" style="margin-bottom:10px">El usuario aceptó la cotización. Crea el expediente del servicio contratado.</p>{% endif %}
         {% if s.estado != 'cancelada' %}<a class="btn btn-primary btn-block" href="{% url 'panel_expediente_nuevo' %}?solicitud={{ s.pk }}">{% icon 'plus' 18 %}Crear expediente</a>
         <a class="btn btn-block" style="margin-top:10px" href="{% url 'panel_cita_nueva' %}?usuario={{ s.usuario_id }}">{% icon 'calendar' 18 %}Programar cita</a>
-        <form method="post" style="margin-top:10px" onsubmit="return confirm('¿Cancelar esta solicitud?')">{% csrf_token %}<input type="hidden" name="accion" value="cancelar"><button class="btn btn-block btn-danger" type="submit">Cancelar solicitud</button></form>{% endif %}
+        <form method="post" style="margin-top:10px" data-confirmar="¿Cancelar esta solicitud?">{% csrf_token %}<input type="hidden" name="accion" value="cancelar"><button class="btn btn-block btn-danger" type="submit">Cancelar solicitud</button></form>{% endif %}
       </div></div>
     </aside>
   </div>

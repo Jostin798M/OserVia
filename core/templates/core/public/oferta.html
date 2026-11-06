@@ -2,8 +2,8 @@
 {% load ui %}
 {% block title %}{{ o.titulo }}{% endblock %}
 {% block content %}
-{% if o.tipo == 'vuelo' %}{% url 'vuelos' as back %}{% else %}{% url 'paquetes' as back %}{% endif %}
-{% if o.tipo == 'vuelo' %}{% include 'core/partials/hero.html' with hero_icon='plane' hero_title=o.titulo hero_sub='Oferta de vuelo · '|add:o.codigo back_url=back back_label='Vuelos' %}{% else %}{% include 'core/partials/hero.html' with hero_icon='suitcase' hero_title=o.titulo hero_sub='Paquete turístico · '|add:o.codigo back_url=back back_label='Paquetes' %}{% endif %}
+{% if o.tipo == 'vuelo' %}{% url 'vuelos' as back %}{% elif o.tipo == 'hospedaje' %}{% url 'hospedaje' as back %}{% else %}{% url 'paquetes' as back %}{% endif %}
+{% if o.tipo == 'vuelo' %}{% include 'core/partials/hero.html' with hero_icon='plane' hero_title=o.titulo hero_sub='Oferta de vuelo · '|add:o.codigo back_url=back back_label='Vuelos' %}{% elif o.tipo == 'hospedaje' %}{% include 'core/partials/hero.html' with hero_icon='bed' hero_title=o.titulo hero_sub='Hospedaje · '|add:o.codigo back_url=back back_label='Hospedaje' %}{% else %}{% include 'core/partials/hero.html' with hero_icon='suitcase' hero_title=o.titulo hero_sub='Paquete turístico · '|add:o.codigo back_url=back back_label='Paquetes' %}{% endif %}
 <div class="container lift">
   <div class="detail-grid">
     <div class="stack">
@@ -17,10 +17,17 @@
         {% endif %}
         <p class="prose">{{ o.descripcion|linebreaksbr }}</p>
         <dl class="dl" style="margin-top:20px">
+          {% if o.tipo == 'hospedaje' %}
+          <div><dt>Entrada</dt><dd>{{ o.fecha_salida|date:"D j M Y" }}</dd></div>
+          <div><dt>Salida</dt><dd>{{ o.fecha_regreso|date:"D j M Y" }}</dd></div>
+          <div><dt>Destino</dt><dd>{{ o.destino }}</dd></div>
+          <div><dt>Estadía</dt><dd>{{ o.noches }} noche{{ o.noches|pluralize }}</dd></div>
+          {% else %}
           <div><dt>Salida</dt><dd>{{ o.fecha_salida|date:"D j M Y" }}</dd></div>
           <div><dt>Regreso</dt><dd>{{ o.fecha_regreso|date:"D j M Y"|default:"Solo ida" }}</dd></div>
           {% if o.tipo == 'vuelo' %}<div><dt>Duración del vuelo</dt><dd>{{ o.duracion_horas|floatformat:"-1" }} horas</dd></div>
           {% else %}<div><dt>Destino</dt><dd>{{ o.destino }}</dd></div><div><dt>Duración</dt><dd>{{ o.duracion_dias }} días</dd></div>{% endif %}
+          {% endif %}
           <div><dt>Seguro de viaje</dt><dd>{{ o.incluye_seguro|yesno:"Incluido,No incluido" }}</dd></div>
         </dl>
       </div></div>
@@ -36,12 +43,12 @@
     <aside class="stack sticky-side">
       <div class="card card-elevated"><div class="card-body">
         {% if o.promocion_vigente %}<span class="offer-promo offer-promo--inline">{% icon 'star' 14 %}{{ o.promocion_vigente.titulo }}</span>
-        <p class="muted small" style="margin:8px 0 0">Válida para solicitudes del {{ o.promocion_vigente.fecha_inicio|date:"j M" }} al {{ o.promocion_vigente.fecha_fin|date:"j M Y" }}.</p>{% endif %}
+        <p class="muted small" style="margin:8px 0 0">Válida para solicitudes del {{ o.promocion_vigente.fecha_inicio|date:"j M" }} al {{ o.promocion_vigente.fecha_fin|date:"j M Y" }}. <a href="{{ o.promocion_vigente.get_absolute_url }}">Ver condiciones</a></p>{% endif %}
         <form method="get" action="{% url 'cotizar' %}" data-estimador data-precio="{{ o.precio_persona|stringformat:'s' }}">
           <input type="hidden" name="oferta" value="{{ o.codigo }}">
           <div class="price price--lg"><span>Precio por persona</span><strong>${{ o.precio_persona|floatformat:"2g" }}</strong><span>USD · referencial</span></div>
           <div class="field">
-            <label class="label" for="est-pasajeros">¿Cuántas personas viajan?</label>
+            <label class="label" for="est-pasajeros">{% if o.tipo == 'hospedaje' %}¿Cuántas personas se hospedan?{% else %}¿Cuántas personas viajan?{% endif %}</label>
             <div class="stepper" data-stepper>
               <button type="button" data-step="-1" aria-label="Quitar pasajero">{% icon 'minus' 18 %}</button>
               <input id="est-pasajeros" class="input" type="number" name="pasajeros" value="1" min="1" max="20" inputmode="numeric">

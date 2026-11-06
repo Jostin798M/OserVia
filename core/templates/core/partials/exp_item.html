@@ -1,8 +1,8 @@
 {% load ui %}<a class="req req--{% if e.es_visa %}visa{% else %}viaje{% endif %}" href="{% if panel %}{{ e.get_panel_url }}{% else %}{{ e.get_absolute_url }}{% endif %}">
-  <span class="req-icon">{% if e.es_visa %}{% icon 'passport' 22 %}{% elif e.tipo == 'paquete' %}{% icon 'suitcase' 22 %}{% else %}{% icon 'plane' 22 %}{% endif %}</span>
+  <span class="req-icon">{% if e.es_visa %}{% icon 'passport' 22 %}{% elif e.tipo == 'hospedaje' %}{% icon 'bed' 22 %}{% elif e.tipo == 'paquete' %}{% icon 'suitcase' 22 %}{% else %}{% icon 'plane' 22 %}{% endif %}</span>
   <span class="req-main">
     <span class="req-title">{{ e.titulo }}</span>
-    <span class="req-meta"><span class="code">{{ e.codigo }}</span>{% if panel %}<span>{{ e.nombre }}</span><span>{% if e.asesor %}{{ e.asesor.get_full_name|default:e.asesor.email }}{% else %}Sin asesor{% endif %}</span>{% else %}<span>{{ e.get_tipo_display }}</span>{% endif %}<span>Act. {{ e.actualizado|date:"j M Y" }}</span></span>
+    <span class="req-meta"><span class="code">{{ e.codigo }}</span>{% if panel %}<span>{{ e.nombre }}</span><span>{% if e.asesor %}{{ e.asesor|nombre }}{% else %}Sin asesor{% endif %}</span>{% else %}<span>{{ e.get_tipo_display }}</span>{% endif %}<span>Act. {{ e.actualizado|date:"j M Y" }}</span></span>
   </span>
   <span class="req-side">
     {% if e.es_visa %}<span class="badge badge--info">{{ e.get_etapa_display }}</span>{% else %}{% include 'core/partials/badge.html' with tono=e.tono texto=e.get_estado_display %}{% endif %}

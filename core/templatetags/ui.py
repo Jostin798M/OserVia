@@ -4,6 +4,22 @@ from django.utils.html import format_html
 register = template.Library()
 
 
+@register.filter
+def nombre(usuario):
+    """Nombre completo o correo; tolera cuentas ausentes (por ejemplo, ya eliminadas)."""
+    if not usuario:
+        return '—'
+    return usuario.get_full_name() or usuario.email
+
+
+@register.simple_tag
+def lugares_catalogo():
+    """Catálogo para el autocompletado de los formularios que no filtran ofertas."""
+    from django.utils.html import json_script
+    from ..lugares import sugerencias
+    return json_script(sugerencias([], 'origen'), 'lugares-catalogo')
+
+
 @register.simple_tag
 def icon(name, size=20, cls=''):
     """Icono SVG del sprite (core/partials/icons.html)."""

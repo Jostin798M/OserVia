@@ -8,7 +8,7 @@
     <div class="profile-head">
       <span class="avatar-lg" aria-hidden="true">{% include 'core/partials/initials.html' %}</span>
       <div style="min-width:0">
-        <h1 style="font-size:clamp(1.4rem,1.1rem + 1.2vw,2rem)">{{ user.get_full_name|default:user.email }}</h1>
+        <h1 style="font-size:clamp(1.4rem,1.1rem + 1.2vw,2rem)">{{ user|nombre }}</h1>
         <div class="meta">
           <span>{% icon 'mail' 14 %}{{ user.email }}</span>
           <span>{% icon 'calendar' 14 %}Miembro desde {{ user.date_joined|date:"F Y" }}</span>

@@ -21,12 +21,12 @@
       </div>
       <p class="consulta-motivo">{{ c.motivo }}</p>
       <div class="consulta-foot">
-        <span class="muted small">{% if c.asesor %}Asesor: <strong>{{ c.asesor.get_full_name|default:c.asesor.email }}</strong> · asignada por {{ c.asignado_por.get_full_name|default:c.asignado_por.email }} el {{ c.asignado_en|date:"j M, H:i" }}{% else %}Sin asignar{% endif %}</span>
+        <span class="muted small">{% if c.asesor %}Asesor: <strong>{{ c.asesor|nombre }}</strong> · asignada por {% if c.asignado_por %}{{ c.asignado_por|nombre }}{% else %}—{% endif %} el {{ c.asignado_en|date:"j M, H:i" }}{% else %}Sin asignar{% endif %}</span>
         <div class="inline-actions">
           {% if es_admin %}
           <form method="post" class="inline-form">{% csrf_token %}<input type="hidden" name="consulta" value="{{ c.pk }}"><input type="hidden" name="accion" value="asignar"><input type="hidden" name="next" value="{{ request.get_full_path }}">
             <label class="sr-only" for="as-{{ c.pk }}">Asesor</label>
-            <select id="as-{{ c.pk }}" name="asesor" class="select select--sm" required>{% for o in asignar_form.fields.asesor.queryset %}<option value="{{ o.pk }}" {% if o.pk == c.asesor_id %}selected{% endif %}>{{ o.get_full_name|default:o.email }}</option>{% endfor %}</select>
+            <select id="as-{{ c.pk }}" name="asesor" class="select select--sm" required>{% for o in asignar_form.fields.asesor.queryset %}<option value="{{ o.pk }}" {% if o.pk == c.asesor_id %}selected{% endif %}>{{ o|nombre }}</option>{% endfor %}</select>
             <button class="btn btn-sm" type="submit">{% if c.asesor %}Reasignar{% else %}Asignar{% endif %}</button>
           </form>
           {% endif %}

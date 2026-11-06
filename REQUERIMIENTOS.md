@@ -158,6 +158,9 @@ Prioridad MoSCoW: **Must** (indispensable), **Should** (importante), **Could** (
 | RS-05.5 | Must | El asesor registra la cotización: servicios incluidos, precio total, vigencia y condiciones; el usuario la ve en su cuenta. | Cumple | Panel → Cotizaciones → detalle |
 | RS-05.6 | Must | Cada cotización nueva queda «Pendiente de respuesta»; el usuario la acepta o rechaza; se guarda fecha y hora y el asesor la consulta. | Cumple | Detalle de la solicitud (cliente y panel) |
 | RS-05.7 | Must | Buscar ofertas de vuelos sin sesión por destino, fecha de salida, precio máximo por persona y duración máxima; todos los filtros se combinan; si no hay resultados lo indica. | Cumple | `/vuelos/` |
+| RS-05.8 | Must | Consultar y buscar ofertas de hospedaje sin sesión por destino, fecha de entrada y precio máximo por persona, y solicitarlas con el mismo flujo de cotización y expediente que vuelos y paquetes. | Cumple | Sitio público → Hospedaje; solicitud del cliente. |
+| RS-05.9 | Must | Buscar paquetes turísticos sin sesión por destino, fecha de salida, precio máximo por persona y duración máxima, con filtros combinables. | Cumple | Sitio público → Paquetes. |
+| RS-05.10 | Should | Filtrar vuelos por origen, con la ciudad más cercana sugerida por la ubicación si el usuario da permiso, y autocompletar lugares en vuelos, paquetes y hospedaje. | Cumple | Buscadores del sitio público. |
 
 ### 6.6 Seguimiento de servicios
 

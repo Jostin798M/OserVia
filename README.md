@@ -10,7 +10,7 @@ pagos. El detalle de los requerimientos y su estado está en [`REQUERIMIENTOS.md
 
 ## Qué incluye
 
-- **Sitio público** (sin iniciar sesión): ofertas de vuelos con buscador, paquetes, promociones, asesoría de
+- **Sitio público** (sin iniciar sesión): ofertas de vuelos y de hospedaje con buscador, paquetes, promociones, asesoría de
   visas, Nosotros, preguntas frecuentes, formulario de consulta, asistente virtual, botón de WhatsApp y video
   tutorial.
 - **Mi cuenta** (clientes): cotizaciones que se aceptan o rechazan, expedientes con etapa y documentos, entrega
