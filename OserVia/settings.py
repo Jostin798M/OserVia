@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 import os
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,10 +26,15 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-*ydr+c()eaah6-
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # En producción define DJANGO_PRODUCCION=1 (ver el bloque de seguridad al final).
-PRODUCCION = os.environ.get('DJANGO_PRODUCCION') == '1'
+EN_VERCEL = os.environ.get('VERCEL') == '1'
+PRODUCCION = os.environ.get('DJANGO_PRODUCCION') == '1' or EN_VERCEL
 DEBUG = not PRODUCCION
 
-ALLOWED_HOSTS = [h for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h] or ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = [h for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h]
+# Vercel informa las URL de cada despliegue; así no hace falta abrir todo *.vercel.app.
+ALLOWED_HOSTS += [os.environ[v] for v in ('VERCEL_URL', 'VERCEL_BRANCH_URL', 'VERCEL_PROJECT_PRODUCTION_URL')
+                  if os.environ.get(v)]
+ALLOWED_HOSTS = ALLOWED_HOSTS or ['127.0.0.1', 'localhost']
 
 # Desarrollo: permitir túneles de ngrok (dominio y formularios por HTTPS).
 if not PRODUCCION:
@@ -92,6 +98,26 @@ DATABASES = {
     }
 }
 
+# Producción: PostgreSQL de Supabase por su pooler en modo transacción (puerto 6543).
+# Cada instancia de Vercel es efímera, por eso no se conservan conexiones ni cursores de servidor.
+if os.environ.get('DATABASE_URL'):
+    _db = urlparse(os.environ['DATABASE_URL'])
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': _db.path.lstrip('/'),
+            'USER': unquote(_db.username or ''),
+            'PASSWORD': unquote(_db.password or ''),
+            'HOST': _db.hostname,
+            'PORT': _db.port or 5432,
+            'CONN_MAX_AGE': 0,
+            'DISABLE_SERVER_SIDE_CURSORS': True,
+            'OPTIONS': {'sslmode': 'require'},
+        }
+    }
+    # Los límites de intentos de inicio de sesión deben compartirse entre instancias.
+    CACHES = {'default': {'BACKEND': 'django.core.cache.backends.db.DatabaseCache', 'LOCATION': 'cache_django'}}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
@@ -127,12 +153,26 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Vercel ejecuta collectstatic y los sirve desde su CDN
 
 # Archivos subidos por los usuarios (documentos de visado).
 # No se publican con una URL directa: se sirven a través de una vista
 # que verifica que el usuario sea el dueño del expediente.
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Vercel no conserva archivos en disco: en producción van a un bucket privado de Supabase.
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '').rstrip('/')
+SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_KEY', '')
+SUPABASE_BUCKET = os.environ.get('SUPABASE_BUCKET', 'oservia')
+if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+    STORAGES = {
+        'default': {'BACKEND': 'core.almacen.AlmacenSupabase'},
+        'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+    }
+
+# Vercel rechaza peticiones de más de 4,5 MB antes de que lleguen a Django.
+LIMITE_SUBIDA_MB = int(os.environ.get('LIMITE_SUBIDA_MB', 4 if EN_VERCEL else 0)) or None
 
 # Autenticación: los clientes inician sesión con su correo electrónico.
 AUTHENTICATION_BACKENDS = [
@@ -154,6 +194,21 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+# Con EMAIL_HOST definido se usa SMTP real (recuperación de contraseña en producción).
+if os.environ.get('EMAIL_HOST'):
+    MAILERS['default'] = {
+        'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+        'OPTIONS': {
+            'host': os.environ['EMAIL_HOST'],
+            'port': int(os.environ.get('EMAIL_PORT', 587)),
+            'username': os.environ.get('EMAIL_HOST_USER', ''),
+            'password': os.environ.get('EMAIL_HOST_PASSWORD', ''),
+            'use_tls': True,
+        },
+    }
+elif PRODUCCION:
+    # Sin SMTP no se envían correos, y los enlaces de recuperación no deben quedar en los registros.
+    MAILERS['default'] = {'BACKEND': 'django.core.mail.backends.dummy.EmailBackend'}
 
 DEFAULT_FROM_EMAIL = 'OserVia <no-responder@osertravelec.com>'
 PASSWORD_RESET_TIMEOUT = 60 * 60 * 24  # el enlace de recuperación vence en 24 horas (RS-01.4)
@@ -172,7 +227,7 @@ if PRODUCCION:
     SECURE_HSTS_SECONDS = 60 * 60 * 24 * 365
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    CSRF_TRUSTED_ORIGINS = [f'https://{h}' for h in ALLOWED_HOSTS]
+    CSRF_TRUSTED_ORIGINS = [f'https://{h.replace(".", "*.", 1) if h.startswith(".") else h}' for h in ALLOWED_HOSTS]
 
 SESSION_COOKIE_HTTPONLY = True
 X_FRAME_OPTIONS = 'DENY'

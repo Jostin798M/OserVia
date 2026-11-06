@@ -83,7 +83,17 @@ core/
 REQUERIMIENTOS.md        Requerimientos del sistema y su estado
 ```
 
-## Publicar en un servidor
+## Publicación (Vercel y Supabase)
+
+Vercel está conectado a este repositorio: cada commit en `main` publica el sitio. Supabase aloja la base de
+datos y los archivos, y las variables necesarias están en `.env.example`.
+
+- **Límite de subida:** Vercel acepta hasta 4,5 MB por petición, así que los formularios permiten hasta 4 MB.
+- **Migraciones:** se ejecutan desde tu equipo con `DATABASE_URL` en el puerto 5432 de Supabase. Vercel no las aplica.
+- **Tablas nuevas:** activa RLS en cada tabla nueva de `public` para que no quede expuesta por la API de Supabase.
+- **Correo:** sin `EMAIL_HOST`, los correos de recuperación de contraseña no se envían.
+
+## Publicar en otro servidor
 
 La configuración de producción se activa con variables de entorno:
 

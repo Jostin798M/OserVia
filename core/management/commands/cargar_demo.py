@@ -5,6 +5,8 @@
 
 Los precios y casos son ficticios; el contenido se edita desde Panel → Contenido.
 """
+import os
+import secrets
 import zlib
 from datetime import datetime, time, timedelta
 from decimal import Decimal
@@ -69,6 +71,8 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--reiniciar', action='store_true', help='Borra los datos de negocio antes de cargar.')
+        parser.add_argument('--claves-aleatorias', metavar='ARCHIVO',
+                            help='Para sitios publicados: genera contraseñas fuertes y las guarda en ARCHIVO.')
 
     @transaction.atomic
     def handle(self, *args, **opts):
@@ -81,15 +85,24 @@ class Command(BaseCommand):
             return
 
         hoy = timezone.localdate()
+        self.claves_nuevas, self.aleatorias = [], bool(opts.get('claves_aleatorias'))
         self.cuentas()
         self.contenido(hoy)
         self.casos(hoy)
+        if self.aleatorias:
+            fd = os.open(opts['claves_aleatorias'], os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+            with os.fdopen(fd, 'a', encoding='utf8') as f:
+                f.write('# Cuentas de OserVia publicado\n\n| Correo | Contraseña |\n|---|---|\n')
+                f.writelines(f'| `{e}` | `{p}` |\n' for e, p in self.claves_nuevas)
         self.stdout.write(self.style.SUCCESS('Datos de demostración cargados.'))
 
     # ------------------------------------------------------------------ Cuentas
     def cuenta(self, email, password, nombre, apellido, rol, telefono='', cedula=''):
         u = User.objects.filter(email__iexact=email).first() or User(username=email, email=email)
         if not u.pk or not u.has_usable_password():
+            if self.aleatorias:
+                password = secrets.token_urlsafe(18)
+                self.claves_nuevas.append((email, password))
             u.set_password(password)
         u.username, u.first_name, u.last_name = email, nombre, apellido
         u.is_staff, u.is_active = rol != 'usuario', True

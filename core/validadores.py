@@ -2,6 +2,7 @@
 import os
 
 from django import forms
+from django.conf import settings
 
 MB = 1024 * 1024
 
@@ -49,8 +50,10 @@ class ArchivoInput(forms.ClearableFileInput):
 
 class ArchivoField(forms.FileField):
     def __init__(self, *args, extensiones=ARCHIVOS_AGENCIA, max_mb=10, **kwargs):
+        limite = getattr(settings, 'LIMITE_SUBIDA_MB', None)
+        max_mb = min(max_mb, limite) if limite else max_mb
         self.extensiones, self.max_mb = extensiones, max_mb
-        kwargs.setdefault('widget', ArchivoInput(attrs={'accept': ','.join(extensiones)}))
+        kwargs.setdefault('widget', ArchivoInput(attrs={'accept': ','.join(extensiones), 'data-max-bytes': max_mb * MB}))
         kwargs.setdefault('help_text', f'{_nombres(extensiones)} · máximo {max_mb} MB.')
         super().__init__(*args, **kwargs)
 

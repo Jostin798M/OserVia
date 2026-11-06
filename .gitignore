@@ -12,10 +12,19 @@ media/
 # Datos sensibles: no publicar
 CREDENCIALES.md
 CREDENCIALES.pdf
+CREDENCIALES_PRODUCCION.md
 .env
+.env.*
+.vercel/
+staticfiles/
 
 # Editores y sistema
 .vscode/
 .idea/
 *.swp
 .DS_Store
+.vercel
+.env*
+
+# La plantilla sin secretos sí se versiona
+!.env.example

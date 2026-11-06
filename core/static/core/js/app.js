@@ -310,4 +310,14 @@
     src.addEventListener('change', sync);
     sync();
   });
+
+  /* Avisa antes de enviar si el archivo supera el máximo permitido. */
+  document.querySelectorAll('input[type=file][data-max-bytes]').forEach(function (campo) {
+    campo.addEventListener('change', function () {
+      var maximo = Number(campo.dataset.maxBytes);
+      var excede = Array.prototype.some.call(campo.files, function (f) { return f.size > maximo; });
+      campo.setCustomValidity(excede ? 'El archivo pesa más de ' + Math.round(maximo / 1048576) + ' MB. Elige uno más liviano.' : '');
+      if (excede) campo.reportValidity();
+    });
+  });
 })();

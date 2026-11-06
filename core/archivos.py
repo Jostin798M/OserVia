@@ -3,7 +3,7 @@ import mimetypes
 import os
 import re
 
-from django.http import FileResponse, Http404, HttpResponse
+from django.http import FileResponse, Http404, HttpResponse, HttpResponseRedirect
 
 RANGO = re.compile(r'bytes=(\d*)-(\d*)$')
 
@@ -11,6 +11,17 @@ RANGO = re.compile(r'bytes=(\d*)-(\d*)$')
 def servir(request, fieldfile, nombre=None, descargar=False):
     if not fieldfile:
         raise Http404
+    # Almacén remoto: la vista ya verificó el permiso; se entrega con un enlace firmado de corta duración.
+    # El almacén atiende directamente los rangos de video y evita el límite de respuesta de Vercel.
+    if hasattr(fieldfile.storage, 'enlace_firmado'):
+        try:
+            enlace = fieldfile.storage.enlace_firmado(fieldfile.name, descarga=nombre if descargar else None)
+        except OSError:
+            raise Http404
+        r = HttpResponseRedirect(enlace)
+        r['Cache-Control'] = 'private, no-store'
+        r['Referrer-Policy'] = 'no-referrer'
+        return r
     try:
         ruta = fieldfile.path
         total = os.path.getsize(ruta)

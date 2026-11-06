@@ -592,3 +592,39 @@ class ConcurrenciaTest(TransactionTestCase):
         [h.join() for h in hilos]
         self.assertEqual(Abono.objects.filter(comprobante=c).count(), 1)
         self.assertEqual(Expediente.objects.get(pk=e.pk).saldo, Decimal('300'))
+
+
+class DespliegueTest(TestCase):
+    """Entrega de archivos desde Supabase Storage y límite de subida de Vercel."""
+
+    def almacen(self):
+        from core.almacen import AlmacenSupabase
+        return AlmacenSupabase(url='https://x.supabase.co', clave='k', bucket='b')
+
+    def test_enlace_firmado_incluye_nombre_de_descarga(self):
+        from unittest import mock
+        respuesta = mock.MagicMock()
+        respuesta.__enter__.return_value.read.return_value = b'{"signedURL": "/object/sign/b/a%20b.pdf?token=t"}'
+        with mock.patch('core.almacen.urlopen', return_value=respuesta) as abrir:
+            enlace = self.almacen().enlace_firmado('a b.pdf', descarga='Mi boleto.pdf')
+        peticion = abrir.call_args.args[0]
+        self.assertEqual(peticion.full_url, 'https://x.supabase.co/storage/v1/object/sign/b/a%20b.pdf')
+        self.assertEqual(enlace, 'https://x.supabase.co/storage/v1/object/sign/b/a%20b.pdf?token=t&download=Mi%20boleto.pdf')
+
+    def test_servir_redirige_al_enlace_firmado(self):
+        from unittest import mock
+        from django.test import RequestFactory
+        from core.archivos import servir
+        f = mock.MagicMock(name='f')
+        f.name = 'privado/a.pdf'
+        f.storage.enlace_firmado.return_value = 'https://x.supabase.co/firmado'
+        r = servir(RequestFactory().get('/'), f, nombre='a.pdf')
+        self.assertEqual((r.status_code, r['Location']), (302, 'https://x.supabase.co/firmado'))
+        self.assertIn('no-store', r['Cache-Control'])
+
+    def test_limite_de_subida_reduce_el_maximo(self):
+        from core.validadores import ArchivoField
+        with self.settings(LIMITE_SUBIDA_MB=4):
+            campo = ArchivoField(max_mb=10)
+        self.assertEqual(campo.max_mb, 4)
+        self.assertIn('4 MB', campo.help_text)
