@@ -2,6 +2,9 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "regions": ["iad1"],
   "functions": {
-    "OserVia/wsgi.py": { "maxDuration": 60 }
+    "OserVia/wsgi.py": {
+      "maxDuration": 60,
+      "includeFiles": "core/templates/**"
+    }
   }
 }
